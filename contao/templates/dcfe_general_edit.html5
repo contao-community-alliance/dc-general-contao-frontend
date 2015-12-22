@@ -1,0 +1,51 @@
+<?php
+
+/**
+ * This file is part of contao-community-alliance/dc-general-contao-frontend.
+ *
+ * (c) 2015 Contao Community Alliance.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ *
+ * This project is provided in good faith and hope to be usable by anyone.
+ *
+ * @package    contao-community-alliance/dc-general-contao-frontend
+ * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
+ * @copyright  2015 Contao Community Alliance.
+ * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
+ * @filesource
+ */
+?>
+<h2 class="sub_headline"><?= $this->subHeadline; ?></h2>
+<?= $this->getMessages(); ?>
+
+<form class="tl_form" method="post"
+      action="<?= ampersand(\Environment::get('request'), true); ?>"
+      id="<?= $this->table; ?>"
+      enctype="<?= $this->enctype; ?>"
+>
+    <div class="tl_formbody_edit">
+        <input type="hidden" name="FORM_SUBMIT" value="<?= specialchars($this->table); ?>"/>
+        <input type="hidden" name="REQUEST_TOKEN" value="<?= REQUEST_TOKEN; ?>"/>
+        <?php if ($this->error): ?><p class="tl_error"><?= implode('<br />', $this->error); ?></p><?php endif; ?>
+        <?php foreach ($this->fieldsets as $arrFieldset): ?>
+            <?php if ($arrFieldset['legend']): ?>
+                <fieldset id="pal_<?= specialchars($arrFieldset['legend']); ?>"
+                          class="<?= $arrFieldset['class']; ?> block">
+                    <legend><?= $arrFieldset['label']; ?></legend>
+                    <?= $arrFieldset['palette']; ?>
+                </fieldset>
+            <?php else: ?>
+                <fieldset class="<?= $arrFieldset['class']; ?> block nolegend">
+                    <?= $arrFieldset['palette']; ?>
+                </fieldset>
+            <?php endif; ?>
+        <?php endforeach; ?>
+    </div>
+    <div class="tl_formbody_submit">
+        <div class="tl_submit_container">
+            <?= implode(' ', $this->editButtons); ?>
+        </div>
+    </div>
+</form>
