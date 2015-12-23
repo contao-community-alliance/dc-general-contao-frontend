@@ -64,12 +64,14 @@ class FrontendEditor
      *
      * @param string $containerName The name of the data container to edit.
      *
+     * @param string $defaultAction The default action to issue, if none provided by the input provider.
+     *
      * @return string
      */
-    public function editFor($containerName)
+    public function editFor($containerName, $defaultAction = 'showAll')
     {
         $environment = $this->createDcGeneral($containerName);
-        $actionName  = $environment->getInputProvider()->getParameter('act') ?: 'showAll';
+        $actionName  = $environment->getInputProvider()->getParameter('act') ?: $defaultAction;
         $action      = new Action($actionName);
         $event       = new ActionEvent($environment, $action);
 
