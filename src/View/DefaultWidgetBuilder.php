@@ -155,7 +155,7 @@ class DefaultWidgetBuilder
      *
      * @param ModelInterface       $model       The model.
      *
-     * @return string
+     * @return string[]
      */
     private function getOptionsForWidget(
         EnvironmentInterface $environment,
