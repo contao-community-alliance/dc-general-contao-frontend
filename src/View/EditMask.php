@@ -483,9 +483,9 @@ class EditMask
     private function getHeadline()
     {
         if ($this->model->getId()) {
-            return $this->translateLabel('editRecord', ['ID ' . $this->model->getId()]);
+            return $this->translateLabel('editRecord', [$this->model->getId()]);
         }
-        return $this->translateLabel('newRecord', ['ID ' . $this->model->getId()]);
+        return $this->translateLabel('newRecord');
     }
 
     /**
