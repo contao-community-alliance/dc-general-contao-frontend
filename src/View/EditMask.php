@@ -208,7 +208,7 @@ class EditMask
     private function enforceModelRelationship()
     {
         $event = new EnforceModelRelationshipEvent($this->environment, $this->model);
-        
+
         $this->dispatcher->dispatch(DcGeneralEvents::ENFORCE_MODEL_RELATIONSHIP, $event);
     }
 
@@ -502,7 +502,6 @@ class EditMask
         $this->handlePrePersist();
 
         // FIXME: manual sorting property handling is not enabled here as it originates from the backend defininiton.
-
         // Save the model.
         $dataProvider = $this->environment->getDataProvider($this->model->getProviderName());
 
