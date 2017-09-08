@@ -28,7 +28,10 @@ use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\Event\Manip
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Event\BuildWidgetEvent;
 use ContaoCommunityAlliance\DcGeneral\Data\ModelInterface;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\Definition\Properties\PropertyInterface;
+use ContaoCommunityAlliance\DcGeneral\DcGeneralEvents;
 use ContaoCommunityAlliance\DcGeneral\EnvironmentInterface;
+use ContaoCommunityAlliance\DcGeneral\Event\GetWidgetClassEvent;
+use ContaoCommunityAlliance\DcGeneral\Exception\DcGeneralRuntimeException;
 
 /**
  * Widget Builder to build Contao frontend widgets.
@@ -73,7 +76,7 @@ class DefaultWidgetBuilder
         $propertyName = $property->getName();
         $propExtra    = $property->getExtra();
         $defName      = $environment->getDataDefinition()->getName();
-        $strClass     = $this->getWidgetClass($property);
+        $strClass     = $this->getWidgetClass($environment, $property, $model);
 
         $event = new DecodePropertyValueForWidgetEvent($environment, $model);
         $event
@@ -122,28 +125,59 @@ class DefaultWidgetBuilder
         return $widget;
     }
 
+    public function retrieveWidgetClass(GetWidgetClassEvent $event)
+    {
+        if (null !== $event->getWidgetClass()) {
+            return;
+        }
+
+        $property = $event->getProperty();
+
+        if (isset($GLOBALS['TL_FFL'][$property->getWidgetType()])) {
+            $className = $GLOBALS['TL_FFL'][$property->getWidgetType()];
+            if (class_exists($className)) {
+                $event->setWidgetClass($className);
+            }
+        }
+    }
+
+    public function alterWidgetClassForMultipleText(GetWidgetClassEvent $event)
+    {
+        $property  = $event->getProperty();
+        $propExtra = $property->getExtra();
+
+        if ('text' === $property->getWidgetType() && isset($propExtra['multiple'])) {
+            $property->setWidgetType('text_multiple');
+        }
+    }
+
     /**
      * Try to resolve the class name for the widget.
      *
-     * @param PropertyInterface $property The property to get the widget class name for.
+     * @param EnvironmentInterface $environment The environment in use.
+     *
+     * @param PropertyInterface    $property    The property to get the widget class name for.
+     *
+     * @param ModelInterface|null  $model       The model for which the widget is created.
      *
      * @return string
-     *
-     * @SuppressWarnings(PHPMD.Superglobals)
-     * @SuppressWarnings(PHPMD.CamelCaseVariableName)
      */
-    private function getWidgetClass(PropertyInterface $property)
+    private function getWidgetClass(EnvironmentInterface $environment, PropertyInterface $property, $model = null)
     {
-        if (!isset($GLOBALS['TL_FFL'][$property->getWidgetType()])) {
-            return null;
+        $dispatcher = $environment->getEventDispatcher();
+        $dispatcher->addListener(DcGeneralEvents::GET_WIDGET_CLASS, [$this, 'retrieveWidgetClass']);
+
+        $event = new GetWidgetClassEvent($environment, $property, $model);
+        $dispatcher->dispatch(DcGeneralEvents::GET_WIDGET_CLASS, $event);
+
+        $widgetClass = $event->getWidgetClass();
+        if (null === $widgetClass) {
+            throw new DcGeneralRuntimeException(
+                sprintf('Widget class for property "%s" could not be retrieved', $property->getWidgetType())
+            );
         }
 
-        $className = $GLOBALS['TL_FFL'][$property->getWidgetType()];
-        if (!class_exists($className)) {
-            return null;
-        }
-
-        return $className;
+        return $widgetClass;
     }
 
     /**

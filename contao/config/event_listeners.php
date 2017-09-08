@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015 Contao Community Alliance.
+ * (c) 2015-2017 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,7 +12,8 @@
  *
  * @package    contao-community-alliance/dc-general-contao-frontend
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
- * @copyright  2015 Contao Community Alliance.
+ * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
+ * @copyright  2015-2017 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
@@ -31,7 +32,7 @@ if (TL_MODE !== 'FE') {
 }
 
 return [
-    DcGeneralEvents::ACTION => [
+    DcGeneralEvents::ACTION                => [
         function (ActionEvent $event) {
 
             if (null !== $event->getResponse()) {
@@ -52,10 +53,13 @@ return [
             $handler->handleEvent($event);
         }
     ],
-    DcGeneralFrontendEvents::BUILD_WIDGET => [
+    DcGeneralFrontendEvents::BUILD_WIDGET  => [
         [new DefaultWidgetBuilder(), 'handleEvent'],
     ],
     DcGeneralFrontendEvents::HANDLE_SUBMIT => [
         [new HandleSubmitListener($GLOBALS['container']['environment']), 'handleEvent']
+    ],
+    DcGeneralEvents::GET_WIDGET_CLASS      => [
+        [new DefaultWidgetBuilder(), 'alterWidgetClassForMultipleText']
     ],
 ];
