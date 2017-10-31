@@ -31,22 +31,6 @@ use ContaoCommunityAlliance\UrlBuilder\UrlBuilder;
  */
 class HandleSubmitListener
 {
-    /**
-     * The Contao environment.
-     *
-     * @var Environment
-     */
-    private $environment;
-
-    /**
-     * Create a new instance.
-     *
-     * @param Environment $environment The contao Environment in use.
-     */
-    public function __construct(Environment $environment)
-    {
-        $this->environment = $environment;
-    }
 
     /**
      * Handle the event.
@@ -58,7 +42,7 @@ class HandleSubmitListener
     public function handleEvent(HandleSubmitEvent $event)
     {
         $dispatcher = func_get_arg(2);
-        $currentUrl = $this->environment->get('uri');
+        $currentUrl = Environment::get('uri');
 
         switch ($event->getButtonName()) {
             case 'save':
