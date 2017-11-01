@@ -22,6 +22,7 @@ namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Listener;
 use Contao\Environment;
 use ContaoCommunityAlliance\Contao\Bindings\ContaoEvents;
 use ContaoCommunityAlliance\Contao\Bindings\Events\Controller\RedirectEvent;
+use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminator;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Event\HandleSubmitEvent;
 use ContaoCommunityAlliance\DcGeneral\Data\ModelId;
 use ContaoCommunityAlliance\UrlBuilder\UrlBuilder;
@@ -33,6 +34,21 @@ class HandleSubmitListener
 {
 
     /**
+     * @var RequestScopeDeterminator
+     */
+    private $scopeDeterminator;
+
+    /**
+     * HandleSubmitListener constructor.
+     *
+     * @param RequestScopeDeterminator $scopeDeterminator
+     */
+    public function __construct(RequestScopeDeterminator $scopeDeterminator)
+    {
+        $this->scopeDeterminator = $scopeDeterminator;
+    }
+
+    /**
      * Handle the event.
      *
      * @param HandleSubmitEvent $event The event.
@@ -41,6 +57,11 @@ class HandleSubmitListener
      */
     public function handleEvent(HandleSubmitEvent $event)
     {
+        // Only run in the frontend
+        if (false === $this->scopeDeterminator->currentScopeIsFrontend()) {
+            return;
+        }
+
         $dispatcher = func_get_arg(2);
         $currentUrl = Environment::get('uri');
 

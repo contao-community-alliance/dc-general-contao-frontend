@@ -19,6 +19,7 @@
 
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Listener;
 
+use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminator;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\ActionHandler\CreateHandler;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\ActionHandler\EditHandler;
 use ContaoCommunityAlliance\DcGeneral\Event\ActionEvent;
@@ -30,6 +31,21 @@ class ActionListener
 {
 
     /**
+     * @var RequestScopeDeterminator
+     */
+    private $scopeDeterminator;
+
+    /**
+     * ActionListener constructor.
+     *
+     * @param RequestScopeDeterminator $scopeDeterminator
+     */
+    public function __construct(RequestScopeDeterminator $scopeDeterminator)
+    {
+        $this->scopeDeterminator = $scopeDeterminator;
+    }
+
+    /**
      * Handle the event.
      *
      * @param ActionEvent $event The event.
@@ -38,7 +54,8 @@ class ActionListener
      */
     public function handleEvent(ActionEvent $event)
     {
-        if (null !== $event->getResponse()) {
+        // Only run in frontend and when response not set yet
+        if (false === $this->scopeDeterminator->currentScopeIsFrontend() || null !== $event->getResponse()) {
             return;
         }
 
