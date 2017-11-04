@@ -63,7 +63,7 @@ class DeleteHandler extends AbstractHandler
         $model        = $dataProvider->fetch($dataProvider->getEmptyConfig()->setId($modelId->getId()));
 
         // Trigger event before the model will be deleted.
-        $event = new PreDeleteModelEvent($this->getEnvironment(), $model);
+        $event = new PreDeleteModelEvent($environment, $model);
         $environment->getEventDispatcher()->dispatch($event::NAME, $event);
 
         $dataProvider->delete($model);
