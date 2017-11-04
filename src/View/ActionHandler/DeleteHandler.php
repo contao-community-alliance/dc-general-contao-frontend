@@ -24,6 +24,8 @@ use ContaoCommunityAlliance\Contao\Bindings\ContaoEvents;
 use ContaoCommunityAlliance\Contao\Bindings\Events\Controller\RedirectEvent;
 use ContaoCommunityAlliance\DcGeneral\Data\ModelId;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\Definition\BasicDefinitionInterface;
+use ContaoCommunityAlliance\DcGeneral\Event\PostDeleteModelEvent;
+use ContaoCommunityAlliance\DcGeneral\Event\PreDeleteModelEvent;
 use ContaoCommunityAlliance\DcGeneral\Exception\DcGeneralRuntimeException;
 use ContaoCommunityAlliance\DcGeneral\View\ActionHandler\AbstractHandler;
 use ContaoCommunityAlliance\UrlBuilder\UrlBuilder;
@@ -59,7 +61,16 @@ class DeleteHandler extends AbstractHandler
 
         $dataProvider = $environment->getDataProvider();
         $model        = $dataProvider->fetch($dataProvider->getEmptyConfig()->setId($modelId->getId()));
+
+        // Trigger event before the model will be deleted.
+        $event = new PreDeleteModelEvent($this->getEnvironment(), $model);
+        $environment->getEventDispatcher()->dispatch($event::NAME, $event);
+
         $dataProvider->delete($model);
+
+        // Trigger event after the model is deleted.
+        $event = new PostDeleteModelEvent($environment, $model);
+        $environment->getEventDispatcher()->dispatch($event::NAME, $event);
 
         $url = UrlBuilder::fromUrl($currentUrl)
             ->unsetQueryParameter('act')
