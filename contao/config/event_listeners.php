@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015 Contao Community Alliance.
+ * (c) 2015-2017 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,7 +12,8 @@
  *
  * @package    contao-community-alliance/dc-general-contao-frontend
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
- * @copyright  2015 Contao Community Alliance.
+ * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
+ * @copyright  2015-2017 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
@@ -20,6 +21,7 @@
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Listener\HandleSubmitListener;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Event\DcGeneralFrontendEvents;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\ActionHandler\CreateHandler;
+use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\ActionHandler\DeleteHandler;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\ActionHandler\EditHandler;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\DefaultWidgetBuilder;
 use ContaoCommunityAlliance\DcGeneral\DcGeneralEvents;
@@ -44,6 +46,9 @@ return [
                     break;
                 case 'edit':
                     $handler = new EditHandler();
+                    break;
+                case 'delete':
+                    $handler = new DeleteHandler();
                     break;
                 default:
                     return;
