@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015 Contao Community Alliance.
+ * (c) 2015 - 2017 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,7 +12,8 @@
  *
  * @package    contao-community-alliance/dc-general-contao-frontend
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
- * @copyright  2015 Contao Community Alliance.
+ * @author     Ingolf Steinhardt <info@e-spin.de>
+ * @copyright  2017 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
@@ -32,7 +33,7 @@ class CreateHandler extends AbstractHandler
     /**
      * Handle the action.
      *
-     * @return mixed
+     * @return void
      *
      * @throws DcGeneralRuntimeException When the definition is not creatable.
      */
@@ -51,10 +52,23 @@ class CreateHandler extends AbstractHandler
             return;
         }
 
-        $dataProvider = $environment->getDataProvider();
-        $model        = $dataProvider->getEmptyModel();
-        $clone        = $dataProvider->getEmptyModel();
-        $editMask     = new EditMask($environment, $model, $clone, null, null);
+        $dataProvider       = $environment->getDataProvider();
+        $propertyDefinition = $definition->getPropertiesDefinition();
+        $properties         = $propertyDefinition->getProperties();
+        $model              = $dataProvider->getEmptyModel();
+        $clone              = $dataProvider->getEmptyModel();
+
+        // If some of the fields have a default value, set it.
+        foreach ($properties as $property) {
+            $propName = $property->getName();
+
+            if ($property->getDefaultValue() !== null) {
+                $model->setProperty($propName, $property->getDefaultValue());
+                $clone->setProperty($propName, $property->getDefaultValue());
+            }
+        }
+
+        $editMask = new EditMask($environment, $model, $clone, null, null);
 
         $event->setResponse($editMask->execute());
     }
