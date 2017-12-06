@@ -22,6 +22,7 @@ namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Listener;
 use Contao\Environment;
 use ContaoCommunityAlliance\Contao\Bindings\ContaoEvents;
 use ContaoCommunityAlliance\Contao\Bindings\Events\Controller\RedirectEvent;
+use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminator;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Event\HandleSubmitEvent;
 use ContaoCommunityAlliance\DcGeneral\Data\ModelId;
 use ContaoCommunityAlliance\UrlBuilder\UrlBuilder;
@@ -31,21 +32,20 @@ use ContaoCommunityAlliance\UrlBuilder\UrlBuilder;
  */
 class HandleSubmitListener
 {
-    /**
-     * The Contao environment.
-     *
-     * @var Environment
-     */
-    private $environment;
 
     /**
-     * Create a new instance.
-     *
-     * @param Environment $environment The contao Environment in use.
+     * @var RequestScopeDeterminator
      */
-    public function __construct(Environment $environment)
+    private $scopeDeterminator;
+
+    /**
+     * HandleSubmitListener constructor.
+     *
+     * @param RequestScopeDeterminator $scopeDeterminator
+     */
+    public function __construct(RequestScopeDeterminator $scopeDeterminator)
     {
-        $this->environment = $environment;
+        $this->scopeDeterminator = $scopeDeterminator;
     }
 
     /**
@@ -57,8 +57,13 @@ class HandleSubmitListener
      */
     public function handleEvent(HandleSubmitEvent $event)
     {
+        // Only run in the frontend
+        if (false === $this->scopeDeterminator->currentScopeIsFrontend()) {
+            return;
+        }
+
         $dispatcher = func_get_arg(2);
-        $currentUrl = $this->environment->get('uri');
+        $currentUrl = Environment::get('uri');
 
         switch ($event->getButtonName()) {
             case 'save':

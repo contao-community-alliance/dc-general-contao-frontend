@@ -22,6 +22,7 @@ namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View;
 use ContaoCommunityAlliance\Contao\Bindings\ContaoEvents;
 use ContaoCommunityAlliance\Contao\Bindings\Events\Widget\GetAttributesFromDcaEvent;
 use ContaoCommunityAlliance\DcGeneral\Contao\Compatibility\DcCompat;
+use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminator;
 use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\Event\DecodePropertyValueForWidgetEvent;
 use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\Event\GetPropertyOptionsEvent;
 use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\Event\ManipulateWidgetEvent;
@@ -35,6 +36,22 @@ use ContaoCommunityAlliance\DcGeneral\EnvironmentInterface;
  */
 class DefaultWidgetBuilder
 {
+
+    /**
+     * @var RequestScopeDeterminator
+     */
+    private $scopeDeterminator;
+
+    /**
+     * DefaultWidgetBuilder constructor.
+     *
+     * @param RequestScopeDeterminator $scopeDeterminator
+     */
+    public function __construct(RequestScopeDeterminator $scopeDeterminator)
+    {
+        $this->scopeDeterminator = $scopeDeterminator;
+    }
+
     /**
      * Handle the build widget event.
      *
@@ -44,7 +61,8 @@ class DefaultWidgetBuilder
      */
     public function handleEvent(BuildWidgetEvent $event)
     {
-        if ($event->getWidget()) {
+        // Only run in the frontend or when the widget is not build yet
+        if (false === $this->scopeDeterminator->currentScopeIsFrontend() || null !== $event->getWidget()) {
             return;
         }
 
