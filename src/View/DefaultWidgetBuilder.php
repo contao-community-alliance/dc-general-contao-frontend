@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015 Contao Community Alliance.
+ * (c) 2015-2017 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,7 +12,8 @@
  *
  * @package    contao-community-alliance/dc-general-contao-frontend
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
- * @copyright  2015 Contao Community Alliance.
+ * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
+ * @copyright  2015-2017 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
@@ -103,6 +104,20 @@ class DefaultWidgetBuilder
 
         $propExtra['required']  = ($varValue == '') && !empty($propExtra['mandatory']);
         $propExtra['tableless'] = true;
+        if (isset($propExtra['datepicker'])) {
+            $propExtra['class'] = $this->addCssClass($propExtra['class'], 'datepicker');
+            $propExtra['class'] = $this->addCssClass($propExtra['class'], '-' . $propExtra['rgxp']);
+        }
+        if (isset($propExtra['colorpicker'])) {
+            $propExtra['class'] = $this->addCssClass($propExtra['class'], 'colorpicker');
+            if (isset($propExtra['isHexColor'])) {
+                $propExtra['class'] = $this->addCssClass($propExtra['class'], '-hex-color');
+            }
+        }
+        if (isset($propExtra['rte'])) {
+            $propExtra['class'] = $this->addCssClass($propExtra['class'], 'rte');
+            $propExtra['class'] = $this->addCssClass($propExtra['class'], '-' . $propExtra['rte']);
+        }
 
         $arrConfig = array(
             'inputType' => $property->getWidgetType(),
@@ -129,6 +144,13 @@ class DefaultWidgetBuilder
 
         $dispatcher->dispatch(ContaoEvents::WIDGET_GET_ATTRIBUTES_FROM_DCA, $event);
         $preparedConfig = $event->getResult();
+
+        // Remove the "Backend.autoSubmit()", add css class for this purpose
+        if (isset($preparedConfig['submitOnChange'])) {
+            $preparedConfig['class'] = $this->addCssClass($preparedConfig['class'], 'submitOnChange');
+            unset($preparedConfig['onclick']);
+            unset($preparedConfig['onchange']);
+        }
 
         $widget = new $strClass($preparedConfig, new DcCompat($environment, $model, $propertyName));
 
@@ -192,5 +214,25 @@ class DefaultWidgetBuilder
         }
 
         return $options;
+    }
+
+
+    /**
+     * Add a css class to a string of existing css classes.
+     *
+     * @param string $classString The string to append the css class to
+     * @param string $class       The css class to add
+     *
+     * @return string
+     */
+    private function addCssClass($classString, $class)
+    {
+        if (null !== $classString) {
+            $classString .= ' ' . $class;
+        } else {
+            $classString = $class;
+        }
+
+        return $classString;
     }
 }
