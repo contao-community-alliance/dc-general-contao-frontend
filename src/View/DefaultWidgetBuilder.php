@@ -145,6 +145,13 @@ class DefaultWidgetBuilder
         $dispatcher->dispatch(ContaoEvents::WIDGET_GET_ATTRIBUTES_FROM_DCA, $event);
         $preparedConfig = $event->getResult();
 
+        // Remove the "Backend.autoSubmit()", add css class for this purpose
+        if (isset($preparedConfig['submitOnChange'])) {
+            $preparedConfig['class'] = $this->addCssClass($preparedConfig['class'], 'submitOnChange');
+            unset($preparedConfig['onclick']);
+            unset($preparedConfig['onchange']);
+        }
+
         $widget = new $strClass($preparedConfig, new DcCompat($environment, $model, $propertyName));
 
         $widget->currentRecord = $model->getId();
