@@ -35,7 +35,7 @@ class EditHandler extends AbstractHandler
      *
      * @return void
      *
-     * @throws DcGeneralRuntimeException When the definition is not creatable.
+     * @throws DcGeneralRuntimeException When the definition is not editable.
      */
     public function process()
     {
@@ -45,7 +45,7 @@ class EditHandler extends AbstractHandler
         $basicDefinition = $definition->getBasicDefinition();
 
         if (!$basicDefinition->isEditable()) {
-            throw new DcGeneralRuntimeException('DataContainer ' . $definition->getName() . ' is not creatable');
+            throw new DcGeneralRuntimeException('DataContainer ' . $definition->getName() . ' is not editable');
         }
         // We only support flat tables, sorry.
         if (BasicDefinitionInterface::MODE_FLAT !== $basicDefinition->getMode()) {
