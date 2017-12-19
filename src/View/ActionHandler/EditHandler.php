@@ -21,28 +21,74 @@
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\ActionHandler;
 
 use Contao\CoreBundle\Exception\PageNotFoundException;
+use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminator;
+use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminatorAwareTrait;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\EditMask;
 use ContaoCommunityAlliance\DcGeneral\Data\ModelId;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\Definition\BasicDefinitionInterface;
+use ContaoCommunityAlliance\DcGeneral\EnvironmentInterface;
+use ContaoCommunityAlliance\DcGeneral\Event\ActionEvent;
 use ContaoCommunityAlliance\DcGeneral\Exception\DcGeneralRuntimeException;
-use ContaoCommunityAlliance\DcGeneral\View\ActionHandler\AbstractHandler;
 
 /**
  * This class handles the edit actions in the frontend.
  */
-class EditHandler extends AbstractHandler
+class EditHandler
 {
+    use RequestScopeDeterminatorAwareTrait;
+
+    /**
+     * EditHandler constructor.
+     *
+     * @param RequestScopeDeterminator $scopeDeterminator The request mode determinator.
+     */
+    public function __construct(RequestScopeDeterminator $scopeDeterminator)
+    {
+        $this->setScopeDeterminator($scopeDeterminator);
+    }
+
+    /**
+     * Handle the event to process the action.
+     *
+     * @param ActionEvent $event The action event
+     *
+     * @return void
+     */
+    public function handleEvent(ActionEvent $event)
+    {
+        if (!$this->scopeDeterminator->currentScopeIsFrontend()) {
+            return;
+        }
+
+        $action = $event->getAction();
+        // Only handle if we do not have a manual sorting or we know where to insert.
+        // Manual sorting is handled by clipboard.
+        if ('edit' !== $action->getName()) {
+            return;
+        }
+
+        // Only run when no response given yet.
+        if (null !== $event->getResponse()) {
+            return;
+        }
+
+        $response = $this->process($event->getEnvironment());
+        if (false !== $response) {
+            $event->setResponse($response);
+        }
+    }
+
     /**
      * Handle the action.
      *
-     * @return void
+     * @param EnvironmentInterface $environment The environment.
+     *
+     * @return string|bool
      *
      * @throws DcGeneralRuntimeException When the definition is not editable.
      */
-    public function process()
+    public function process(EnvironmentInterface $environment)
     {
-        $environment     = $this->getEnvironment();
-        $event           = $this->getEvent();
         $definition      = $environment->getDataDefinition();
         $basicDefinition = $definition->getBasicDefinition();
 
@@ -51,7 +97,7 @@ class EditHandler extends AbstractHandler
         }
         // We only support flat tables, sorry.
         if (BasicDefinitionInterface::MODE_FLAT !== $basicDefinition->getMode()) {
-            return;
+            return false;
         }
         $modelId = ModelId::fromSerialized($environment->getInputProvider()->getParameter('id'));
 
@@ -64,6 +110,6 @@ class EditHandler extends AbstractHandler
         }
         $editMask = new EditMask($environment, $model, $clone, null, null);
 
-        $event->setResponse($editMask->execute());
+        return $editMask->execute();
     }
 }

@@ -21,27 +21,61 @@
 
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\ActionHandler;
 
+use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\ActionHandler\AbstractRequestScopeDeterminatorHandler;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\EditMask;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\Definition\BasicDefinitionInterface;
+use ContaoCommunityAlliance\DcGeneral\EnvironmentInterface;
+use ContaoCommunityAlliance\DcGeneral\Event\ActionEvent;
 use ContaoCommunityAlliance\DcGeneral\Exception\DcGeneralRuntimeException;
-use ContaoCommunityAlliance\DcGeneral\View\ActionHandler\AbstractHandler;
 
 /**
  * This class handles the create actions in the frontend.
  */
-class CreateHandler extends AbstractHandler
+class CreateHandler extends AbstractRequestScopeDeterminatorHandler
 {
+
+    /**
+     * Handle the event to process the action.
+     *
+     * @param ActionEvent $event The action event.
+     *
+     * @return void
+     */
+    public function handleEvent(ActionEvent $event)
+    {
+        if (!$this->scopeDeterminator->currentScopeIsFrontend()) {
+            return;
+        }
+
+        $environment = $event->getEnvironment();
+        $action      = $event->getAction();
+
+        // Only handle if we do not have a manual sorting or we know where to insert.
+        // Manual sorting is handled by clipboard.
+        if ('create' !== $action->getName()) {
+            return;
+        }
+
+        // Only run when no response given yet.
+        if (null !== $event->getResponse()) {
+            return;
+        }
+
+        $response = $this->process($environment);
+        if ($response !== false) {
+            $event->setResponse($response);
+        }
+    }
+
     /**
      * Handle the action.
      *
-     * @return void
+     * @return string|bool
      *
      * @throws DcGeneralRuntimeException When the definition is not creatable.
      */
-    public function process()
+    public function process(EnvironmentInterface $environment)
     {
-        $environment     = $this->getEnvironment();
-        $event           = $this->getEvent();
         $definition      = $environment->getDataDefinition();
         $basicDefinition = $definition->getBasicDefinition();
 
@@ -50,7 +84,7 @@ class CreateHandler extends AbstractHandler
         }
         // We only support flat tables, sorry.
         if (BasicDefinitionInterface::MODE_FLAT !== $basicDefinition->getMode()) {
-            return;
+            return false;
         }
 
         $dataProvider       = $environment->getDataProvider();
@@ -71,6 +105,6 @@ class CreateHandler extends AbstractHandler
 
         $editMask = new EditMask($environment, $model, $clone, null, null);
 
-        $event->setResponse($editMask->execute());
+        return $editMask->execute();
     }
 }
