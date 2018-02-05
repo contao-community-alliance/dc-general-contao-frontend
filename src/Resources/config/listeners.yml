@@ -1,11 +1,4 @@
 services:
-    cca.dc-general.contao_frontend.action_listener:
-        class: ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Listener\ActionListener
-        tags:
-          - { name: kernel.event_listener, event: 'dc-general.action', method: handleEvent, priority: 10 }
-        arguments:
-          - '@cca.dc-general.scope-matcher'
-
     cca.dc-general.contao_frontend.view.build_widget_listener:
         class: ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\DefaultWidgetBuilder
         tags:
@@ -19,3 +12,17 @@ services:
           - { name: kernel.event_listener, event: 'dc-general.contao-frontend.handle-submit', method: handleEvent }
         arguments:
           - '@cca.dc-general.scope-matcher'
+
+    cca.dc-general.contao_frontend.create_handler:
+        class: ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\ActionHandler\CreateHandler
+        arguments:
+            - "@cca.dc-general.scope-matcher"
+        tags:
+            - { name: kernel.event_listener, event: dc-general.action, method: handleEvent }
+
+    cca.dc-general.contao_frontend.edit_handler:
+        class: ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\ActionHandler\EditHandler
+        arguments:
+            - "@cca.dc-general.scope-matcher"
+        tags:
+            - { name: kernel.event_listener, event: dc-general.action, method: handleEvent }
