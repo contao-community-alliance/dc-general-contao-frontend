@@ -1,0 +1,6 @@
+services:
+    cca.dc-general.contao_frontend.editor:
+        class: ContaoCommunityAlliance\DcGeneral\ContaoFrontend\FrontendEditor
+        arguments:
+          - '@event_dispatcher'
+          - '@cca.translator.contao_translator'
