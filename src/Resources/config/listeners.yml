@@ -13,7 +13,7 @@ services:
         arguments:
           - '@cca.dc-general.scope-matcher'
 
-    cca.dc-general.backend_listener.create_handler:
+    cca.dc-general.contao_frontend.create_handler:
         class: ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\ActionHandler\CreateHandler
         arguments:
             - "@cca.dc-general.scope-matcher"
