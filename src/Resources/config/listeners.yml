@@ -26,3 +26,10 @@ services:
             - "@cca.dc-general.scope-matcher"
         tags:
             - { name: kernel.event_listener, event: dc-general.action, method: handleEvent }
+
+    cca.dc-general.contao_frontend.copy_handler:
+        class: ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\ActionHandler\CopyHandler
+        arguments:
+            - "@cca.dc-general.scope-matcher"
+        tags:
+            - { name: kernel.event_listener, event: dc-general.action, method: handleEvent }
