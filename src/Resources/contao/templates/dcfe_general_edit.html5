@@ -20,12 +20,12 @@
 <h2 class="sub_headline"><?= $this->subHeadline; ?></h2>
 <?= $this->getMessages(); ?>
 
-<form class="tl_form" method="post"
+<form method="post"
       action="<?= ampersand(\Environment::get('request'), true); ?>"
       id="<?= $this->table; ?>"
       enctype="<?= $this->enctype; ?>"
 >
-    <div class="tl_formbody_edit">
+    <div class="formbody_edit">
         <input type="hidden" name="FORM_SUBMIT" value="<?= specialchars($this->table); ?>"/>
         <input type="hidden" name="REQUEST_TOKEN" value="<?= REQUEST_TOKEN; ?>"/>
         <?php if ($this->error): ?><p class="tl_error"><?= implode('<br />', $this->error); ?></p><?php endif; ?>
@@ -43,8 +43,8 @@
             <?php endif; ?>
         <?php endforeach; ?>
     </div>
-    <div class="tl_formbody_submit">
-        <div class="tl_submit_container">
+    <div class="formbody_submit">
+        <div class="submit_container">
             <?= implode(' ', $this->editButtons); ?>
         </div>
     </div>

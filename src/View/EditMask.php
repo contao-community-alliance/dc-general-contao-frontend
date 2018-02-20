@@ -315,14 +315,14 @@ class EditMask
         $buttons = [];
 
         $buttons['save'] = sprintf(
-            '<input type="submit" name="save" id="save" class="tl_submit" accesskey="s" value="%s" />',
+            '<input type="submit" name="save" class="submit save" accesskey="s" value="%s">',
             $this->translateLabel('save')
         );
 
         if ($this->definition->getBasicDefinition()->isCreatable()) {
             $buttons['saveNcreate'] = sprintf(
-                '<input type="submit" name="saveNcreate" id="saveNcreate" class="tl_submit" accesskey="n" ' .
-                ' value="%s" />',
+                '<input type="submit" name="saveNcreate" class="submit saveNcreate" accesskey="n" ' .
+                ' value="%s">',
                 $this->translateLabel('saveNcreate')
             );
         }

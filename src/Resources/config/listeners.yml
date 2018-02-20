@@ -31,5 +31,6 @@ services:
         class: ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\ActionHandler\CopyHandler
         arguments:
             - "@cca.dc-general.scope-matcher"
+            - '@request_stack'
         tags:
             - { name: kernel.event_listener, event: dc-general.action, method: handleEvent }

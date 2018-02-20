@@ -19,9 +19,8 @@
 
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\ActionHandler;
 
-use Contao\Environment;
-use ContaoCommunityAlliance\Contao\Bindings\ContaoEvents;
-use ContaoCommunityAlliance\Contao\Bindings\Events\Controller\RedirectEvent;
+use Contao\CoreBundle\Exception\RedirectResponseException;
+use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminator;
 use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\ActionHandler\AbstractRequestScopeDeterminatorHandler;
 use ContaoCommunityAlliance\DcGeneral\Data\ModelId;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\Definition\BasicDefinitionInterface;
@@ -31,6 +30,7 @@ use ContaoCommunityAlliance\DcGeneral\Event\PostDuplicateModelEvent;
 use ContaoCommunityAlliance\DcGeneral\Event\PreDuplicateModelEvent;
 use ContaoCommunityAlliance\DcGeneral\Exception\DcGeneralRuntimeException;
 use ContaoCommunityAlliance\UrlBuilder\UrlBuilder;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * This class handles the copy actions in the frontend.
@@ -39,11 +39,31 @@ class CopyHandler extends AbstractRequestScopeDeterminatorHandler
 {
 
     /**
+     * @var RequestStack
+     */
+    private $requestStack;
+
+    /**
+     * CopyHandler constructor.
+     *
+     * @param RequestScopeDeterminator $scopeDeterminator The request mode determinator.
+     *
+     * @param RequestStack             $requestStack      The current request stack.
+     */
+    public function __construct(RequestScopeDeterminator $scopeDeterminator, RequestStack $requestStack)
+    {
+        parent::__construct($scopeDeterminator);
+
+        $this->requestStack = $requestStack;
+    }
+
+    /**
      * Handle the event to process the action.
      *
      * @param ActionEvent $event
      *
-     * @throws DcGeneralRuntimeException
+     * @throws RedirectResponseException To redirect to the edit mask with cloned model.
+     * @throws DcGeneralRuntimeException When the DataContainer is not creatable.
      */
     public function handleEvent(ActionEvent $event)
     {
@@ -75,14 +95,15 @@ class CopyHandler extends AbstractRequestScopeDeterminatorHandler
      *
      * @return void
      *
-     * @throws DcGeneralRuntimeException
+     * @throws RedirectResponseException To redirect to the edit mask with cloned model.
+     * @throws DcGeneralRuntimeException When the DataContainer is not creatable.
      */
     public function process(EnvironmentInterface $environment)
     {
         $dispatcher      = $environment->getEventDispatcher();
         $definition      = $environment->getDataDefinition();
         $basicDefinition = $definition->getBasicDefinition();
-        $currentUrl      = Environment::get('uri');
+        $currentUrl      = $this->requestStack->getCurrentRequest()->getUri();
 
         if (!$basicDefinition->isCreatable()) {
             throw new DcGeneralRuntimeException('DataContainer '.$definition->getName().' is not creatable');
@@ -110,10 +131,11 @@ class CopyHandler extends AbstractRequestScopeDeterminatorHandler
         $dispatcher->dispatch($copyEvent::NAME, $copyEvent);
 
         // Redirect to the edit mask of the cloned model
-        $url = UrlBuilder::fromUrl($currentUrl)
-            ->setQueryParameter('act', 'edit')
-            ->setQueryParameter('id', ModelId::fromModel($copyModel)->getSerialized())
-            ->unsetQueryParameter('source');
-        $dispatcher->dispatch(ContaoEvents::CONTROLLER_REDIRECT, new RedirectEvent($url->getUrl()));
+        throw new RedirectResponseException(
+            $url = UrlBuilder::fromUrl($currentUrl)
+                ->setQueryParameter('act', 'edit')
+                ->setQueryParameter('id', ModelId::fromModel($copyModel)->getSerialized())
+                ->unsetQueryParameter('source')
+        );
     }
 }
