@@ -34,3 +34,11 @@ services:
             - '@request_stack'
         tags:
             - { name: kernel.event_listener, event: dc-general.action, method: handleEvent }
+
+    cca.dc-general.contao_frontend.delete_handler:
+        class: ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\ActionHandler\DeleteHandler
+        arguments:
+            - "@cca.dc-general.scope-matcher"
+            - '@request_stack'
+        tags:
+            - { name: kernel.event_listener, event: dc-general.action, method: handleEvent }
