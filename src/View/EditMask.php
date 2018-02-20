@@ -187,14 +187,14 @@ class EditMask
 
         $template = new ViewTemplate('dcfe_general_edit');
         $template->setData(
-            array(
+            [
                 'fieldsets'   => $fieldSets,
                 'subHeadline' => $this->getHeadline(),
                 'table'       => $this->definition->getName(),
                 'enctype'     => 'multipart/form-data',
                 'error'       => $this->errors,
                 'editButtons' => $buttons
-            )
+            ]
         );
 
         return $template->parse();
@@ -223,7 +223,7 @@ class EditMask
     {
         $input = $this->environment->getInputProvider();
 
-        if ($input->getValue('FORM_SUBMIT') == $this->definition->getName()) {
+        if ($input->getValue('FORM_SUBMIT') === $this->definition->getName()) {
             $propertyValues = new PropertyValueBag();
             $propertyNames  = array_intersect(
                 $this->definition->getPropertiesDefinition()->getPropertyNames(),
@@ -252,7 +252,7 @@ class EditMask
     private function handlePrePersist()
     {
         if (null !== $this->preFunction) {
-            call_user_func_array($this->preFunction, [$this->environment, $this->model, $this->originalModel]);
+            \call_user_func($this->preFunction, $this->environment, $this->model, $this->originalModel);
         }
 
         $this->dispatcher->dispatch(
@@ -269,7 +269,7 @@ class EditMask
     private function handlePostPersist()
     {
         if (null !== $this->postFunction) {
-            call_user_func_array($this->postFunction, [$this->environment, $this->model, $this->originalModel]);
+            \call_user_func($this->postFunction, $this->environment, $this->model, $this->originalModel);
         }
 
         $event = new PostPersistModelEvent($this->environment, $this->model, $this->originalModel);
@@ -293,11 +293,13 @@ class EditMask
     private function translateLabel($transString, $parameters = [])
     {
         $translator = $this->translator;
-        if ($transString !==
-            ($label = $translator->translate($transString, $this->definition->getName(), $parameters))
-        ) {
+        if ($transString !== ($label =
+                $translator->translate($transString, $this->definition->getName(), $parameters))) {
             return $label;
-        } elseif ($transString !== ($label = $translator->translate('MSC.' . $transString, $parameters))) {
+        }
+
+        if ($transString !== ($label = $translator->translate('MSC.'.$transString, $parameters))
+        ) {
             return $label;
         }
 
@@ -345,6 +347,9 @@ class EditMask
      * @param PropertyValueBag $propertyValues The property values.
      *
      * @return array
+     *
+     * @throws DcGeneralRuntimeException         For unknown properties.
+     * @throws DcGeneralInvalidArgumentException When the property is not registered in the definition.
      */
     private function buildFieldSet($widgetManager, $palette, $propertyValues)
     {
@@ -352,6 +357,7 @@ class EditMask
         $isAutoSubmit        = ($this->environment->getInputProvider()->getValue('SUBMIT_TYPE') === 'auto');
 
         $fieldSets = [];
+        $errors    = [];
         $first     = true;
         foreach ($palette->getLegends() as $legend) {
             $legendName = $this->translator->translate(
@@ -376,10 +382,7 @@ class EditMask
                     && $propertyValues->hasPropertyValue($propertyName)
                     && $propertyValues->isPropertyValueInvalid($propertyName)
                 ) {
-                    $this->errors = array_merge(
-                        $this->errors,
-                        $propertyValues->getPropertyValueErrors($propertyName)
-                    );
+                    $errors[] = $propertyValues->getPropertyValueErrors($propertyName);
                 }
 
                 $fields[] = $widgetManager->renderWidget($propertyName, $isAutoSubmit, $propertyValues);
@@ -387,13 +390,15 @@ class EditMask
             }
 
             $fieldSet['label']   = $legendName;
-            $fieldSet['class']   = ($first) ? 'tl_tbox' : 'tl_box';
+            $fieldSet['class']   = $first ? 'tl_tbox' : 'tl_box';
             $fieldSet['palette'] = implode('', $hidden) . implode('', $fields);
             $fieldSet['legend']  = $legend->getName();
             $fieldSets[]         = $fieldSet;
 
             $first = false;
         }
+
+        $this->errors = array_merge(...$errors);
 
         return $fieldSets;
     }

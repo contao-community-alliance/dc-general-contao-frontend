@@ -151,8 +151,7 @@ class DefaultWidgetBuilder
         // Remove the "Backend.autoSubmit()", add css class for this purpose
         if (isset($preparedConfig['submitOnChange'])) {
             $preparedConfig['class'] = $this->addCssClass($preparedConfig['class'], 'submitOnChange');
-            unset($preparedConfig['onclick']);
-            unset($preparedConfig['onchange']);
+            unset($preparedConfig['onclick'], $preparedConfig['onchange']);
         }
 
         $widget = new $strClass($preparedConfig, new DcCompat($environment, $model, $propertyName));

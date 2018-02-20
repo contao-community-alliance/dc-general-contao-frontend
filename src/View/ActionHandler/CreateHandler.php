@@ -26,6 +26,7 @@ use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\EditMask;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\Definition\BasicDefinitionInterface;
 use ContaoCommunityAlliance\DcGeneral\EnvironmentInterface;
 use ContaoCommunityAlliance\DcGeneral\Event\ActionEvent;
+use ContaoCommunityAlliance\DcGeneral\Exception\DcGeneralInvalidArgumentException;
 use ContaoCommunityAlliance\DcGeneral\Exception\DcGeneralRuntimeException;
 
 /**
@@ -40,6 +41,9 @@ class CreateHandler extends AbstractRequestScopeDeterminatorHandler
      * @param ActionEvent $event The action event.
      *
      * @return void
+     *
+     * @throws DcGeneralInvalidArgumentException If an unknown property is encountered in the palette.
+     * @throws DcGeneralRuntimeException         If the data container is not editable, closed.
      */
     public function handleEvent(ActionEvent $event)
     {
@@ -70,9 +74,12 @@ class CreateHandler extends AbstractRequestScopeDeterminatorHandler
     /**
      * Handle the action.
      *
+     * @param EnvironmentInterface $environment
+     *
      * @return string|bool
      *
-     * @throws DcGeneralRuntimeException When the definition is not creatable.
+     * @throws DcGeneralInvalidArgumentException If an unknown property is encountered in the palette.
+     * @throws DcGeneralRuntimeException         If the data container is not editable, closed.
      */
     public function process(EnvironmentInterface $environment)
     {

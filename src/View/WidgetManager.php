@@ -119,7 +119,8 @@ class WidgetManager
      *
      * @return string
      *
-     * @throws DcGeneralRuntimeException For unknown properties.
+     * @throws DcGeneralInvalidArgumentException When property is not defined in the property definitions.
+     * @throws DcGeneralRuntimeException         For unknown properties.
      */
     public function renderWidget($property, $ignoreErrors = false, PropertyValueBag $valueBag = null)
     {
@@ -177,6 +178,9 @@ class WidgetManager
      * @param string           $property The property to process.
      *
      * @return void
+     *
+     * @throws DcGeneralRuntimeException         When No widget could be build.
+     * @throws DcGeneralInvalidArgumentException When property is not defined in the property definitions.
      */
     private function processProperty(PropertyValueBag $valueBag, $property)
     {

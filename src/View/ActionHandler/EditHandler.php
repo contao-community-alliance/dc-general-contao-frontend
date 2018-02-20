@@ -28,6 +28,7 @@ use ContaoCommunityAlliance\DcGeneral\Data\ModelId;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\Definition\BasicDefinitionInterface;
 use ContaoCommunityAlliance\DcGeneral\EnvironmentInterface;
 use ContaoCommunityAlliance\DcGeneral\Event\ActionEvent;
+use ContaoCommunityAlliance\DcGeneral\Exception\DcGeneralInvalidArgumentException;
 use ContaoCommunityAlliance\DcGeneral\Exception\DcGeneralRuntimeException;
 
 /**
@@ -53,6 +54,10 @@ class EditHandler
      * @param ActionEvent $event The action event
      *
      * @return void
+     *
+     * @throws PageNotFoundException             If item to edit was not found.
+     * @throws DcGeneralInvalidArgumentException If the data container is not editable, closed.
+     * @throws DcGeneralRuntimeException         When the definition is not editable.
      */
     public function handleEvent(ActionEvent $event)
     {
@@ -85,7 +90,9 @@ class EditHandler
      *
      * @return string|bool
      *
-     * @throws DcGeneralRuntimeException When the definition is not editable.
+     * @throws PageNotFoundException             If item to edit was not found.
+     * @throws DcGeneralInvalidArgumentException If the data container is not editable, closed.
+     * @throws DcGeneralRuntimeException         When the definition is not editable.
      */
     public function process(EnvironmentInterface $environment)
     {
