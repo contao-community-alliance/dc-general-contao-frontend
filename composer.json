@@ -41,11 +41,6 @@
   },
   "extra":{
     "contao-manager-plugin": "ContaoCommunityAlliance\\DcGeneral\\ContaoFrontend\\ContaoManager\\Plugin",
-    "contao": {
-      "symlinks":{
-        "contao":"system/modules/dc-general-contao-frontend"
-      }
-    },
     "branch-alias": {
       "dev-master": "2.0.x-dev",
       "dev-contao4": "2.1.x-dev"
