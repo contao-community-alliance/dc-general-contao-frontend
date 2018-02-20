@@ -93,6 +93,9 @@ class DefaultWidgetBuilder
         $propExtra    = $property->getExtra();
         $defName      = $environment->getDataDefinition()->getName();
         $strClass     = $this->getWidgetClass($property);
+        if (null === $strClass) {
+            return null;
+        }
 
         $event = new DecodePropertyValueForWidgetEvent($environment, $model);
         $event
