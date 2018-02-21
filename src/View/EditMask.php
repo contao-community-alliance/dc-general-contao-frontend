@@ -398,7 +398,9 @@ class EditMask
             $first = false;
         }
 
-        $this->errors = array_merge(...$errors);
+        if ([] !== $errors) {
+            $this->errors = array_merge(...$errors);
+        }
 
         return $fieldSets;
     }
