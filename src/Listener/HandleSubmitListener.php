@@ -19,13 +19,12 @@
 
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Listener;
 
-use Contao\Environment;
-use ContaoCommunityAlliance\Contao\Bindings\ContaoEvents;
-use ContaoCommunityAlliance\Contao\Bindings\Events\Controller\RedirectEvent;
+use Contao\CoreBundle\Exception\RedirectResponseException;
 use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminator;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Event\HandleSubmitEvent;
 use ContaoCommunityAlliance\DcGeneral\Data\ModelId;
 use ContaoCommunityAlliance\UrlBuilder\UrlBuilder;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * This class handles the submit buttons in the frontend for "save" and "save and create".
@@ -39,13 +38,20 @@ class HandleSubmitListener
     private $scopeDeterminator;
 
     /**
+     * @var RequestStack
+     */
+    private $requestStack;
+
+    /**
      * HandleSubmitListener constructor.
      *
      * @param RequestScopeDeterminator $scopeDeterminator
+     * @param RequestStack             $requestStack
      */
-    public function __construct(RequestScopeDeterminator $scopeDeterminator)
+    public function __construct(RequestScopeDeterminator $scopeDeterminator, RequestStack $requestStack)
     {
         $this->scopeDeterminator = $scopeDeterminator;
+        $this->requestStack      = $requestStack;
     }
 
     /**
@@ -54,6 +60,8 @@ class HandleSubmitListener
      * @param HandleSubmitEvent $event The event.
      *
      * @return void
+     *
+     * @throws RedirectResponseException To redirect to the proper edit mask.
      */
     public function handleEvent(HandleSubmitEvent $event)
     {
@@ -62,8 +70,7 @@ class HandleSubmitListener
             return;
         }
 
-        $dispatcher = func_get_arg(2);
-        $currentUrl = Environment::get('uri');
+        $currentUrl = $this->requestStack->getCurrentRequest()->getUri();
 
         switch ($event->getButtonName()) {
             case 'save':
@@ -72,7 +79,7 @@ class HandleSubmitListener
                     ->setQueryParameter('act', 'edit')
                     ->setQueryParameter('id', ModelId::fromModel($event->getModel())->getSerialized());
 
-                $dispatcher->dispatch(ContaoEvents::CONTROLLER_REDIRECT, new RedirectEvent($url->getUrl()));
+                throw new RedirectResponseException($url->getUrl());
                 break;
             case 'saveNcreate':
                 // We want to create a new model, set create action and pass the current id as "after" to keep sorting.
@@ -82,7 +89,7 @@ class HandleSubmitListener
                     ->setQueryParameter('act', 'create')
                     ->setQueryParameter('after', $after->getSerialized());
 
-                $dispatcher->dispatch(ContaoEvents::CONTROLLER_REDIRECT, new RedirectEvent($url->getUrl()));
+                throw new RedirectResponseException($url->getUrl());
                 break;
             default:
                 // Do nothing.

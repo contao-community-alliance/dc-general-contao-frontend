@@ -12,6 +12,7 @@ services:
           - { name: kernel.event_listener, event: 'dc-general.contao-frontend.handle-submit', method: handleEvent }
         arguments:
           - '@cca.dc-general.scope-matcher'
+          - '@request_stack'
 
     cca.dc-general.contao_frontend.create_handler:
         class: ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\ActionHandler\CreateHandler
