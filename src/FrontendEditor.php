@@ -47,6 +47,13 @@ class FrontendEditor
     private $translator;
 
     /**
+     * The already populated environments.
+     *
+     * @var EnvironmentInterface[]
+     */
+    private static $environments;
+
+    /**
      * Create a new instance.
      *
      * @param EventDispatcherInterface $dispatcher The event dispatcher.
@@ -91,15 +98,19 @@ class FrontendEditor
      *
      * @return EnvironmentInterface
      */
-    private function createDcGeneral($containerName)
+    public function createDcGeneral($containerName)
     {
-        $factory   = new DcGeneralFactory();
-        $dcGeneral = $factory
-            ->setContainerName($containerName)
-            ->setEventDispatcher($this->dispatcher)
-            ->setTranslator($this->translator)
-            ->createDcGeneral();
+        if (null === self::$environments[$containerName]) {
+            $factory   = new DcGeneralFactory();
+            $dcGeneral = $factory
+                ->setContainerName($containerName)
+                ->setEventDispatcher($this->dispatcher)
+                ->setTranslator($this->translator)
+                ->createDcGeneral();
 
-        return $dcGeneral->getEnvironment();
+            self::$environments[$containerName] = $dcGeneral->getEnvironment();
+        }
+
+        return self::$environments[$containerName];
     }
 }
