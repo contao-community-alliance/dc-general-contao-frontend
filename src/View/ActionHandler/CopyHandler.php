@@ -136,6 +136,7 @@ class CopyHandler extends AbstractRequestScopeDeterminatorHandler
                 ->setQueryParameter('act', 'edit')
                 ->setQueryParameter('id', ModelId::fromModel($copyModel)->getSerialized())
                 ->unsetQueryParameter('source')
+                ->getUrl()
         );
     }
 }
