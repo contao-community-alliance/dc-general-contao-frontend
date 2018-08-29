@@ -199,6 +199,8 @@ class WidgetManager
         }
 
         if (!$widget->submitInput()) {
+            // Handle as abstaining property.
+            $valueBag->removePropertyValue($property);
             return;
         }
 
