@@ -4,3 +4,4 @@ services:
         arguments:
           - '@event_dispatcher'
           - '@cca.translator.contao_translator'
+        public: true
