@@ -39,6 +39,8 @@ class CopyHandler extends AbstractRequestScopeDeterminatorHandler
 {
 
     /**
+     * The current request stack.
+     *
      * @var RequestStack
      */
     private $requestStack;
@@ -60,10 +62,12 @@ class CopyHandler extends AbstractRequestScopeDeterminatorHandler
     /**
      * Handle the event to process the action.
      *
-     * @param ActionEvent $event
+     * @param ActionEvent $event The action event.
      *
      * @throws RedirectResponseException To redirect to the edit mask with cloned model.
      * @throws DcGeneralRuntimeException When the DataContainer is not creatable.
+     *
+     * @return void
      */
     public function handleEvent(ActionEvent $event)
     {
@@ -132,7 +136,7 @@ class CopyHandler extends AbstractRequestScopeDeterminatorHandler
 
         // Redirect to the edit mask of the cloned model
         throw new RedirectResponseException(
-            $url = UrlBuilder::fromUrl($currentUrl)
+            UrlBuilder::fromUrl($currentUrl)
                 ->setQueryParameter('act', 'edit')
                 ->setQueryParameter('id', ModelId::fromModel($copyModel)->getSerialized())
                 ->unsetQueryParameter('source')

@@ -38,6 +38,8 @@ class DeleteHandler extends AbstractRequestScopeDeterminatorHandler
 {
 
     /**
+     * The current request stack.
+     *
      * @var RequestStack
      */
     private $requestStack;
@@ -59,7 +61,7 @@ class DeleteHandler extends AbstractRequestScopeDeterminatorHandler
     /**
      * Handle the event to process the action.
      *
-     * @param ActionEvent $event The action event
+     * @param ActionEvent $event The action event.
      *
      * @return void
      *

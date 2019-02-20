@@ -21,7 +21,6 @@ namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
-
 /**
  * The Bundle class.
  */

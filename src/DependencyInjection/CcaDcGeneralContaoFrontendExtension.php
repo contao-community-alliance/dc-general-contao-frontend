@@ -41,12 +41,7 @@ class CcaDcGeneralContaoFrontendExtension extends Extension
     ];
 
     /**
-     * Loads a specific configuration.
-     *
-     * @param array            $configs
-     * @param ContainerBuilder $container
-     *
-     * @throws \Exception
+     * {@inheritDoc}
      */
     public function load(array $configs, ContainerBuilder $container)
     {

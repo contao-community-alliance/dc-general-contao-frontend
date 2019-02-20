@@ -74,11 +74,10 @@ class CreateHandler extends AbstractRequestScopeDeterminatorHandler
     /**
      * Handle the action.
      *
-     * @param EnvironmentInterface $environment
+     * @param EnvironmentInterface $environment The environment.
      *
      * @return string|bool
      *
-     * @throws DcGeneralInvalidArgumentException If an unknown property is encountered in the palette.
      * @throws DcGeneralRuntimeException         If the data container is not editable, closed.
      */
     public function process(EnvironmentInterface $environment)

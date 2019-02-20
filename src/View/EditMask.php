@@ -351,6 +351,8 @@ class EditMask
      *
      * @throws DcGeneralRuntimeException         For unknown properties.
      * @throws DcGeneralInvalidArgumentException When the property is not registered in the definition.
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     private function buildFieldSet($widgetManager, $palette, $propertyValues)
     {
@@ -509,7 +511,7 @@ class EditMask
 
         $this->handlePrePersist();
 
-        // FIXME: manual sorting property handling is not enabled here as it originates from the backend defininiton.
+        // TODO: manual sorting property handling is not enabled here as it originates from the backend defininiton.
         // Save the model.
         $dataProvider = $this->environment->getDataProvider($this->model->getProviderName());
 

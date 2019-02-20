@@ -34,11 +34,15 @@ class HandleSubmitListener
 {
 
     /**
+     * The request scope determinator.
+     *
      * @var RequestScopeDeterminator
      */
     private $scopeDeterminator;
 
     /**
+     * The request stack.
+     *
      * @var RequestStack
      */
     private $requestStack;
@@ -46,8 +50,8 @@ class HandleSubmitListener
     /**
      * HandleSubmitListener constructor.
      *
-     * @param RequestScopeDeterminator $scopeDeterminator
-     * @param RequestStack             $requestStack
+     * @param RequestScopeDeterminator $scopeDeterminator The request scope determinator.
+     * @param RequestStack             $requestStack      The request stack.
      */
     public function __construct(RequestScopeDeterminator $scopeDeterminator, RequestStack $requestStack)
     {
@@ -81,7 +85,6 @@ class HandleSubmitListener
                     ->setQueryParameter('id', ModelId::fromModel($event->getModel())->getSerialized());
 
                 throw new RedirectResponseException($url->getUrl());
-                break;
             case 'saveNcreate':
                 // We want to create a new model, set create action and pass the current id as "after" to keep sorting.
                 $after = ModelId::fromModel($event->getModel());
@@ -91,7 +94,6 @@ class HandleSubmitListener
                     ->setQueryParameter('after', $after->getSerialized());
 
                 throw new RedirectResponseException($url->getUrl());
-                break;
             default:
                 // Do nothing.
         }

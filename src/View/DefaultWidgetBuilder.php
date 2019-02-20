@@ -39,6 +39,8 @@ class DefaultWidgetBuilder
 {
 
     /**
+     * The request scope determinator.
+     *
      * @var RequestScopeDeterminator
      */
     private $scopeDeterminator;
@@ -46,7 +48,7 @@ class DefaultWidgetBuilder
     /**
      * DefaultWidgetBuilder constructor.
      *
-     * @param RequestScopeDeterminator $scopeDeterminator
+     * @param RequestScopeDeterminator $scopeDeterminator The request scope determinator.
      */
     public function __construct(RequestScopeDeterminator $scopeDeterminator)
     {
@@ -222,8 +224,8 @@ class DefaultWidgetBuilder
     /**
      * Add a css class to a string of existing css classes.
      *
-     * @param string $classString The string to append the css class to
-     * @param string $class       The css class to add
+     * @param string $classString The string to append the css class to.
+     * @param string $class       The css class to add.
      *
      * @return string
      */

@@ -51,7 +51,7 @@ class EditHandler
     /**
      * Handle the event to process the action.
      *
-     * @param ActionEvent $event The action event
+     * @param ActionEvent $event The action event.
      *
      * @return void
      *
@@ -90,9 +90,8 @@ class EditHandler
      *
      * @return string|bool
      *
-     * @throws PageNotFoundException             If item to edit was not found.
-     * @throws DcGeneralInvalidArgumentException If the data container is not editable, closed.
-     * @throws DcGeneralRuntimeException         When the definition is not editable.
+     * @throws PageNotFoundException     If item to edit was not found.
+     * @throws DcGeneralRuntimeException When the definition is not editable.
      */
     public function process(EnvironmentInterface $environment)
     {

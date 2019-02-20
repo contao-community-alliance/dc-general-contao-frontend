@@ -40,6 +40,8 @@ class CreateVariantHandler extends AbstractRequestScopeDeterminatorHandler
 {
 
     /**
+     * The MetaModels factory.
+     *
      * @var IFactory
      */
     private $factory;
@@ -61,11 +63,13 @@ class CreateVariantHandler extends AbstractRequestScopeDeterminatorHandler
     /**
      * Handle the event to process the action.
      *
-     * @param ActionEvent $event
+     * @param ActionEvent $event The action event.
      *
      * @throws DcGeneralInvalidArgumentException If an unknown property is encountered in the palette.
      * @throws RedirectResponseException         To redirect to the edit mask with cloned model.
      * @throws DcGeneralRuntimeException         When the DataContainer is not creatable.
+     *
+     * @return void
      */
     public function handleEvent(ActionEvent $event)
     {
@@ -100,7 +104,6 @@ class CreateVariantHandler extends AbstractRequestScopeDeterminatorHandler
      *
      * @return string|false
      *
-     * @throws DcGeneralInvalidArgumentException If an unknown property is encountered in the palette.
      * @throws DcGeneralRuntimeException         When the DataContainer is not creatable.
      * @throws DcGeneralRuntimeException         When the model to create a variant from was not found.
      */
