@@ -52,7 +52,7 @@ class FrontendEditor
      *
      * @var EnvironmentInterface[]
      */
-    private static $environments;
+    private static $environments = [];
 
     /**
      * Create a new instance.
@@ -101,7 +101,7 @@ class FrontendEditor
      */
     public function createDcGeneral($containerName)
     {
-        if (null === self::$environments[$containerName]) {
+        if (!array_key_exists($containerName, self::$environments)) {
             $factory   = new DcGeneralFactory();
             $dcGeneral = $factory
                 ->setContainerName($containerName)
