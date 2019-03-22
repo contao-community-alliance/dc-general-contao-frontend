@@ -101,6 +101,11 @@ class DefaultWidgetBuilder
             $propExtra['class'] = $this->addCssClass($propExtra['class'], '-' . $propExtra['rte']);
         }
 
+        // Add the (backend) css class for the frontend as well.
+        if (isset($propExtra['tl_class'])) {
+            $this->addCssClass($propExtra['class'], $propExtra['tl_class']);
+        }
+
         $arrConfig = array(
             'inputType' => $property->getWidgetType(),
             'label'     => array(
