@@ -68,7 +68,7 @@ class DeleteHandler extends AbstractRequestScopeDeterminatorHandler
      * @throws RedirectResponseException After successful delete.
      * @throws DcGeneralRuntimeException When the DataContainer is not deletable.
      */
-    public function handleEvent(ActionEvent $event)
+    public function handleEvent(ActionEvent $event): void
     {
         if (!$this->scopeDeterminator->currentScopeIsFrontend()) {
             return;
@@ -99,7 +99,7 @@ class DeleteHandler extends AbstractRequestScopeDeterminatorHandler
      * @throws RedirectResponseException After successful delete.
      * @throws DcGeneralRuntimeException When the DataContainer is not deletable.
      */
-    public function process(EnvironmentInterface $environment)
+    public function process(EnvironmentInterface $environment): void
     {
         $definition      = $environment->getDataDefinition();
         $basicDefinition = $definition->getBasicDefinition();

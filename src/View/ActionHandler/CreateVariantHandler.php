@@ -31,6 +31,7 @@ use ContaoCommunityAlliance\DcGeneral\Event\PostCreateModelEvent;
 use ContaoCommunityAlliance\DcGeneral\Event\PreCreateModelEvent;
 use ContaoCommunityAlliance\DcGeneral\Exception\DcGeneralInvalidArgumentException;
 use ContaoCommunityAlliance\DcGeneral\Exception\DcGeneralRuntimeException;
+use MetaModels\DcGeneral\Data\Driver;
 use MetaModels\IFactory;
 
 /**
@@ -122,7 +123,7 @@ class CreateVariantHandler extends AbstractRequestScopeDeterminatorHandler
         }
         $modelId = ModelId::fromSerialized($environment->getInputProvider()->getParameter('source'));
 
-        /** @var \MetaModels\DcGeneral\Data\Driver $dataProvider */
+        /** @var Driver $dataProvider */
         $model = $dataProvider->createVariant($dataProvider->getEmptyConfig()->setId($modelId->getId()));
         if (null === $model) {
             throw new DcGeneralRuntimeException(
