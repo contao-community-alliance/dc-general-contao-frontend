@@ -22,6 +22,7 @@ namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\ActionHandler;
 use Contao\CoreBundle\Exception\RedirectResponseException;
 use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminator;
 use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\ActionHandler\AbstractRequestScopeDeterminatorHandler;
+use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Exception\NotCreatableException;
 use ContaoCommunityAlliance\DcGeneral\Data\ModelId;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\Definition\BasicDefinitionInterface;
 use ContaoCommunityAlliance\DcGeneral\EnvironmentInterface;
@@ -110,7 +111,7 @@ class CopyHandler extends AbstractRequestScopeDeterminatorHandler
         $currentUrl      = $this->requestStack->getCurrentRequest()->getUri();
 
         if (!$basicDefinition->isCreatable()) {
-            throw new DcGeneralRuntimeException('DataContainer '.$definition->getName().' is not creatable');
+            throw new NotCreatableException('DataContainer ' . $definition->getName() . ' is not creatable');
         }
         // We only support flat tables, sorry.
         if (BasicDefinitionInterface::MODE_FLAT !== $basicDefinition->getMode()) {

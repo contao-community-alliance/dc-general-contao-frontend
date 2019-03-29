@@ -23,6 +23,7 @@ namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\ActionHandler;
 use Contao\CoreBundle\Exception\PageNotFoundException;
 use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminator;
 use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminatorAwareTrait;
+use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Exception\NotEditableException;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\EditMask;
 use ContaoCommunityAlliance\DcGeneral\Data\ModelId;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\Definition\BasicDefinitionInterface;
@@ -99,7 +100,7 @@ class EditHandler
         $basicDefinition = $definition->getBasicDefinition();
 
         if (!$basicDefinition->isEditable()) {
-            throw new DcGeneralRuntimeException('DataContainer ' . $definition->getName() . ' is not editable');
+            throw new NotEditableException('DataContainer ' . $definition->getName() . ' is not editable');
         }
         // We only support flat tables, sorry.
         if (BasicDefinitionInterface::MODE_FLAT !== $basicDefinition->getMode()) {

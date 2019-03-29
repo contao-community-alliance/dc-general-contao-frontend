@@ -22,6 +22,7 @@
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\ActionHandler;
 
 use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\ActionHandler\AbstractRequestScopeDeterminatorHandler;
+use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Exception\NotCreatableException;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\EditMask;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\Definition\BasicDefinitionInterface;
 use ContaoCommunityAlliance\DcGeneral\EnvironmentInterface;
@@ -86,7 +87,7 @@ class CreateHandler extends AbstractRequestScopeDeterminatorHandler
         $basicDefinition = $definition->getBasicDefinition();
 
         if (!$basicDefinition->isCreatable()) {
-            throw new DcGeneralRuntimeException('DataContainer ' . $definition->getName() . ' is not creatable');
+            throw new NotCreatableException('DataContainer ' . $definition->getName() . ' is not creatable');
         }
         // We only support flat tables, sorry.
         if (BasicDefinitionInterface::MODE_FLAT !== $basicDefinition->getMode()) {
