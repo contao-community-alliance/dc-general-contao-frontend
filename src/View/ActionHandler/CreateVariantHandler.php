@@ -31,6 +31,7 @@ use ContaoCommunityAlliance\DcGeneral\Event\PostCreateModelEvent;
 use ContaoCommunityAlliance\DcGeneral\Event\PreCreateModelEvent;
 use ContaoCommunityAlliance\DcGeneral\Exception\DcGeneralInvalidArgumentException;
 use ContaoCommunityAlliance\DcGeneral\Exception\DcGeneralRuntimeException;
+use ContaoCommunityAlliance\DcGeneral\Exception\NotCreatableException;
 use MetaModels\DcGeneral\Data\Driver;
 use MetaModels\IFactory;
 
@@ -66,13 +67,13 @@ class CreateVariantHandler extends AbstractRequestScopeDeterminatorHandler
      *
      * @param ActionEvent $event The action event.
      *
-     * @throws DcGeneralInvalidArgumentException If an unknown property is encountered in the palette.
+     * @return void
+     *
      * @throws RedirectResponseException         To redirect to the edit mask with cloned model.
      * @throws DcGeneralRuntimeException         When the DataContainer is not creatable.
-     *
-     * @return void
+     * @throws DcGeneralInvalidArgumentException If an unknown property is encountered in the palette.
      */
-    public function handleEvent(ActionEvent $event)
+    public function handleEvent(ActionEvent $event): void
     {
         if (!$this->scopeDeterminator->currentScopeIsFrontend()) {
             return;
@@ -115,7 +116,7 @@ class CreateVariantHandler extends AbstractRequestScopeDeterminatorHandler
         $dataProvider    = $environment->getDataProvider();
 
         if (!$basicDefinition->isCreatable()) {
-            throw new DcGeneralRuntimeException('DataContainer '.$definition->getName().' is not creatable');
+            throw new NotCreatableException('DataContainer ' . $definition->getName() . ' is not creatable');
         }
         // We only support flat tables, sorry.
         if (BasicDefinitionInterface::MODE_FLAT !== $basicDefinition->getMode()) {
