@@ -43,11 +43,3 @@ services:
             - '@request_stack'
         tags:
             - { name: kernel.event_listener, event: dc-general.action, method: handleEvent }
-
-    cca.dc-general.contao_frontend.create_variant_handler:
-        class: ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\ActionHandler\CreateVariantHandler
-        arguments:
-            - '@cca.dc-general.scope-matcher'
-            - '@metamodels.factory'
-        tags:
-            - { name: kernel.event_listener, event: dc-general.action, method: handleEvent }
