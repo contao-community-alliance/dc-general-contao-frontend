@@ -68,7 +68,7 @@ class HandleSubmitListener
      *
      * @throws RedirectResponseException To redirect to the proper edit mask.
      */
-    public function handleEvent(HandleSubmitEvent $event)
+    public function handleEvent(HandleSubmitEvent $event): void
     {
         // Only run in the frontend
         if (false === $this->scopeDeterminator->currentScopeIsFrontend()) {

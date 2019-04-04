@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015-2017 Contao Community Alliance.
+ * (c) 2015-2019 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -13,7 +13,7 @@
  * @package    contao-community-alliance/dc-general-contao-frontend
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
- * @copyright  2015-2017 Contao Community Alliance.
+ * @copyright  2015-2019 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
@@ -30,6 +30,7 @@ use ContaoCommunityAlliance\DcGeneral\EnvironmentInterface;
 use ContaoCommunityAlliance\DcGeneral\Event\ActionEvent;
 use ContaoCommunityAlliance\DcGeneral\Exception\DcGeneralInvalidArgumentException;
 use ContaoCommunityAlliance\DcGeneral\Exception\DcGeneralRuntimeException;
+use ContaoCommunityAlliance\DcGeneral\Exception\NotEditableException;
 
 /**
  * This class handles the edit actions in the frontend.
@@ -59,7 +60,7 @@ class EditHandler
      * @throws DcGeneralInvalidArgumentException If the data container is not editable, closed.
      * @throws DcGeneralRuntimeException         When the definition is not editable.
      */
-    public function handleEvent(ActionEvent $event)
+    public function handleEvent(ActionEvent $event): void
     {
         if (!$this->scopeDeterminator->currentScopeIsFrontend()) {
             return;
@@ -99,7 +100,7 @@ class EditHandler
         $basicDefinition = $definition->getBasicDefinition();
 
         if (!$basicDefinition->isEditable()) {
-            throw new DcGeneralRuntimeException('DataContainer ' . $definition->getName() . ' is not editable');
+            throw new NotEditableException('DataContainer ' . $definition->getName() . ' is not editable');
         }
         // We only support flat tables, sorry.
         if (BasicDefinitionInterface::MODE_FLAT !== $basicDefinition->getMode()) {
@@ -114,8 +115,7 @@ class EditHandler
         if (null === $model) {
             throw new PageNotFoundException('MetaModel not found: ' . $modelId->getSerialized());
         }
-        $editMask = new EditMask($environment, $model, $clone, null, null);
 
-        return $editMask->execute();
+        return (new EditMask($environment, $model, $clone, null, null))->execute();
     }
 }

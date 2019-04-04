@@ -29,6 +29,7 @@ use ContaoCommunityAlliance\DcGeneral\Event\ActionEvent;
 use ContaoCommunityAlliance\DcGeneral\Event\PostDeleteModelEvent;
 use ContaoCommunityAlliance\DcGeneral\Event\PreDeleteModelEvent;
 use ContaoCommunityAlliance\DcGeneral\Exception\DcGeneralRuntimeException;
+use ContaoCommunityAlliance\DcGeneral\Exception\NotDeletableException;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
@@ -68,7 +69,7 @@ class DeleteHandler extends AbstractRequestScopeDeterminatorHandler
      * @throws RedirectResponseException After successful delete.
      * @throws DcGeneralRuntimeException When the DataContainer is not deletable.
      */
-    public function handleEvent(ActionEvent $event)
+    public function handleEvent(ActionEvent $event): void
     {
         if (!$this->scopeDeterminator->currentScopeIsFrontend()) {
             return;
@@ -99,13 +100,13 @@ class DeleteHandler extends AbstractRequestScopeDeterminatorHandler
      * @throws RedirectResponseException After successful delete.
      * @throws DcGeneralRuntimeException When the DataContainer is not deletable.
      */
-    public function process(EnvironmentInterface $environment)
+    public function process(EnvironmentInterface $environment): void
     {
         $definition      = $environment->getDataDefinition();
         $basicDefinition = $definition->getBasicDefinition();
 
         if (!$basicDefinition->isDeletable()) {
-            throw new DcGeneralRuntimeException('DataContainer '.$definition->getName().' is not deletable');
+            throw new NotDeletableException('DataContainer ' . $definition->getName() . ' is not deletable');
         }
         // We only support flat tables, sorry.
         if (BasicDefinitionInterface::MODE_FLAT !== $basicDefinition->getMode()) {

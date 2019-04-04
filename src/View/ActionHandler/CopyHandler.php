@@ -29,6 +29,7 @@ use ContaoCommunityAlliance\DcGeneral\Event\ActionEvent;
 use ContaoCommunityAlliance\DcGeneral\Event\PostDuplicateModelEvent;
 use ContaoCommunityAlliance\DcGeneral\Event\PreDuplicateModelEvent;
 use ContaoCommunityAlliance\DcGeneral\Exception\DcGeneralRuntimeException;
+use ContaoCommunityAlliance\DcGeneral\Exception\NotCreatableException;
 use ContaoCommunityAlliance\UrlBuilder\UrlBuilder;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -69,7 +70,7 @@ class CopyHandler extends AbstractRequestScopeDeterminatorHandler
      *
      * @return void
      */
-    public function handleEvent(ActionEvent $event)
+    public function handleEvent(ActionEvent $event): void
     {
         if (!$this->scopeDeterminator->currentScopeIsFrontend()) {
             return;
@@ -102,7 +103,7 @@ class CopyHandler extends AbstractRequestScopeDeterminatorHandler
      * @throws RedirectResponseException To redirect to the edit mask with cloned model.
      * @throws DcGeneralRuntimeException When the DataContainer is not creatable.
      */
-    public function process(EnvironmentInterface $environment)
+    public function process(EnvironmentInterface $environment): void
     {
         $dispatcher      = $environment->getEventDispatcher();
         $definition      = $environment->getDataDefinition();
@@ -110,7 +111,7 @@ class CopyHandler extends AbstractRequestScopeDeterminatorHandler
         $currentUrl      = $this->requestStack->getCurrentRequest()->getUri();
 
         if (!$basicDefinition->isCreatable()) {
-            throw new DcGeneralRuntimeException('DataContainer '.$definition->getName().' is not creatable');
+            throw new NotCreatableException('DataContainer ' . $definition->getName() . ' is not creatable');
         }
         // We only support flat tables, sorry.
         if (BasicDefinitionInterface::MODE_FLAT !== $basicDefinition->getMode()) {

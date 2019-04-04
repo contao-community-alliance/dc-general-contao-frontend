@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015-2017 Contao Community Alliance.
+ * (c) 2015-2019 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -14,7 +14,7 @@
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author     Ingolf Steinhardt <info@e-spin.de>
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
- * @copyright  2015-2017 Contao Community Alliance.
+ * @copyright  2015-2019 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
@@ -28,6 +28,7 @@ use ContaoCommunityAlliance\DcGeneral\EnvironmentInterface;
 use ContaoCommunityAlliance\DcGeneral\Event\ActionEvent;
 use ContaoCommunityAlliance\DcGeneral\Exception\DcGeneralInvalidArgumentException;
 use ContaoCommunityAlliance\DcGeneral\Exception\DcGeneralRuntimeException;
+use ContaoCommunityAlliance\DcGeneral\Exception\NotCreatableException;
 
 /**
  * This class handles the create actions in the frontend.
@@ -45,7 +46,7 @@ class CreateHandler extends AbstractRequestScopeDeterminatorHandler
      * @throws DcGeneralInvalidArgumentException If an unknown property is encountered in the palette.
      * @throws DcGeneralRuntimeException         If the data container is not editable, closed.
      */
-    public function handleEvent(ActionEvent $event)
+    public function handleEvent(ActionEvent $event): void
     {
         if (!$this->scopeDeterminator->currentScopeIsFrontend()) {
             return;
@@ -86,18 +87,17 @@ class CreateHandler extends AbstractRequestScopeDeterminatorHandler
         $basicDefinition = $definition->getBasicDefinition();
 
         if (!$basicDefinition->isCreatable()) {
-            throw new DcGeneralRuntimeException('DataContainer ' . $definition->getName() . ' is not creatable');
+            throw new NotCreatableException('DataContainer ' . $definition->getName() . ' is not creatable');
         }
         // We only support flat tables, sorry.
         if (BasicDefinitionInterface::MODE_FLAT !== $basicDefinition->getMode()) {
             return false;
         }
 
-        $dataProvider       = $environment->getDataProvider();
-        $propertyDefinition = $definition->getPropertiesDefinition();
-        $properties         = $propertyDefinition->getProperties();
-        $model              = $dataProvider->getEmptyModel();
-        $clone              = $dataProvider->getEmptyModel();
+        $dataProvider = $environment->getDataProvider();
+        $properties   = $definition->getPropertiesDefinition()->getProperties();
+        $model        = $dataProvider->getEmptyModel();
+        $clone        = $dataProvider->getEmptyModel();
 
         // If some of the fields have a default value, set it.
         foreach ($properties as $property) {
@@ -109,8 +109,6 @@ class CreateHandler extends AbstractRequestScopeDeterminatorHandler
             }
         }
 
-        $editMask = new EditMask($environment, $model, $clone, null, null);
-
-        return $editMask->execute();
+        return (new EditMask($environment, $model, $clone, null, null))->execute();
     }
 }

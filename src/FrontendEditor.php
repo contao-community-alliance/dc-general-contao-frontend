@@ -76,7 +76,7 @@ class FrontendEditor
      *
      * @return string
      */
-    public function editFor($containerName, $defaultAction = 'showAll')
+    public function editFor($containerName, $defaultAction = 'showAll'): string
     {
         $environment = $this->createDcGeneral($containerName);
         $actionName  = $environment->getInputProvider()->getParameter('act') ?: $defaultAction;
@@ -99,11 +99,10 @@ class FrontendEditor
      *
      * @return EnvironmentInterface
      */
-    public function createDcGeneral($containerName)
+    public function createDcGeneral($containerName): EnvironmentInterface
     {
         if (!array_key_exists($containerName, self::$environments)) {
-            $factory   = new DcGeneralFactory();
-            $dcGeneral = $factory
+            $dcGeneral = (new DcGeneralFactory())
                 ->setContainerName($containerName)
                 ->setEventDispatcher($this->dispatcher)
                 ->setTranslator($this->translator)
