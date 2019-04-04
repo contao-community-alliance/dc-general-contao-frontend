@@ -21,7 +21,8 @@
 
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\ActionHandler;
 
-use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\ActionHandler\AbstractRequestScopeDeterminatorHandler;
+use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminator;
+use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminatorAwareTrait;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\EditMask;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\Definition\BasicDefinitionInterface;
 use ContaoCommunityAlliance\DcGeneral\EnvironmentInterface;
@@ -33,8 +34,19 @@ use ContaoCommunityAlliance\DcGeneral\Exception\NotCreatableException;
 /**
  * This class handles the create actions in the frontend.
  */
-class CreateHandler extends AbstractRequestScopeDeterminatorHandler
+class CreateHandler
 {
+    use RequestScopeDeterminatorAwareTrait;
+
+    /**
+     * CreateHandler constructor.
+     *
+     * @param RequestScopeDeterminator $scopeDeterminator The request mode determinator.
+     */
+    public function __construct(RequestScopeDeterminator $scopeDeterminator)
+    {
+        $this->setScopeDeterminator($scopeDeterminator);
+    }
 
     /**
      * Handle the event to process the action.

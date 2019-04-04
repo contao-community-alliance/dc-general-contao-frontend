@@ -21,7 +21,7 @@ namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\ActionHandler;
 
 use Contao\CoreBundle\Exception\RedirectResponseException;
 use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminator;
-use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\ActionHandler\AbstractRequestScopeDeterminatorHandler;
+use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminatorAwareTrait;
 use ContaoCommunityAlliance\DcGeneral\Data\ModelId;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\Definition\BasicDefinitionInterface;
 use ContaoCommunityAlliance\DcGeneral\EnvironmentInterface;
@@ -35,8 +35,9 @@ use Symfony\Component\HttpFoundation\RequestStack;
 /**
  * This class handles the edit actions in the frontend.
  */
-class DeleteHandler extends AbstractRequestScopeDeterminatorHandler
+class DeleteHandler
 {
+    use RequestScopeDeterminatorAwareTrait;
 
     /**
      * The current request stack.
@@ -46,7 +47,7 @@ class DeleteHandler extends AbstractRequestScopeDeterminatorHandler
     private $requestStack;
 
     /**
-     * CopyHandler constructor.
+     * DeleteHandler constructor.
      *
      * @param RequestScopeDeterminator $scopeDeterminator The request mode determinator.
      *
@@ -54,7 +55,7 @@ class DeleteHandler extends AbstractRequestScopeDeterminatorHandler
      */
     public function __construct(RequestScopeDeterminator $scopeDeterminator, RequestStack $requestStack)
     {
-        parent::__construct($scopeDeterminator);
+        $this->setScopeDeterminator($scopeDeterminator);
 
         $this->requestStack = $requestStack;
     }

@@ -21,7 +21,7 @@ namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\ActionHandler;
 
 use Contao\CoreBundle\Exception\RedirectResponseException;
 use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminator;
-use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\ActionHandler\AbstractRequestScopeDeterminatorHandler;
+use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminatorAwareTrait;
 use ContaoCommunityAlliance\DcGeneral\Data\ModelId;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\Definition\BasicDefinitionInterface;
 use ContaoCommunityAlliance\DcGeneral\EnvironmentInterface;
@@ -36,8 +36,9 @@ use Symfony\Component\HttpFoundation\RequestStack;
 /**
  * This class handles the copy actions in the frontend.
  */
-class CopyHandler extends AbstractRequestScopeDeterminatorHandler
+class CopyHandler
 {
+    use RequestScopeDeterminatorAwareTrait;
 
     /**
      * The current request stack.
@@ -55,7 +56,7 @@ class CopyHandler extends AbstractRequestScopeDeterminatorHandler
      */
     public function __construct(RequestScopeDeterminator $scopeDeterminator, RequestStack $requestStack)
     {
-        parent::__construct($scopeDeterminator);
+        $this->setScopeDeterminator($scopeDeterminator);
 
         $this->requestStack = $requestStack;
     }
@@ -65,10 +66,10 @@ class CopyHandler extends AbstractRequestScopeDeterminatorHandler
      *
      * @param ActionEvent $event The action event.
      *
+     * @return void
+     *
      * @throws RedirectResponseException To redirect to the edit mask with cloned model.
      * @throws DcGeneralRuntimeException When the DataContainer is not creatable.
-     *
-     * @return void
      */
     public function handleEvent(ActionEvent $event): void
     {
