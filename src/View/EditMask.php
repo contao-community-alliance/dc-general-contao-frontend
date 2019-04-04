@@ -511,7 +511,7 @@ class EditMask
 
         $this->handlePrePersist();
 
-        // TODO: manual sorting property handling is not enabled here as it originates from the backend defininiton.
+        // TO DO: manual sorting property handling is not enabled here as it originates from the backend defininiton.
         // Save the model.
         $dataProvider = $this->environment->getDataProvider($this->model->getProviderName());
 
