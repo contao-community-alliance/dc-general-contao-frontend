@@ -84,6 +84,8 @@ class DefaultWidgetBuilder
      * @param ModelInterface       $model       The current model.
      *
      * @return \Widget
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     public function buildWidget(
         EnvironmentInterface $environment,

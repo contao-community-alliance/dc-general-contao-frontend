@@ -98,7 +98,7 @@ class DeleteHandler extends AbstractRequestScopeDeterminatorHandler
      * @return void
      *
      * @throws RedirectResponseException After successful delete.
-     * @throws DcGeneralRuntimeException When the DataContainer is not deletable.
+     * @throws NotDeletableException     When the DataContainer is not deletable.
      */
     public function process(EnvironmentInterface $environment): void
     {

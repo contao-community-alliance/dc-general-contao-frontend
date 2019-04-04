@@ -91,8 +91,8 @@ class EditHandler
      *
      * @return string|bool
      *
-     * @throws PageNotFoundException     If item to edit was not found.
-     * @throws DcGeneralRuntimeException When the definition is not editable.
+     * @throws PageNotFoundException If item to edit was not found.
+     * @throws NotEditableException  When the definition is not editable.
      */
     public function process(EnvironmentInterface $environment)
     {
@@ -113,7 +113,7 @@ class EditHandler
         $clone        = $dataProvider->getEmptyModel();
 
         if (null === $model) {
-            throw new PageNotFoundException('MetaModel not found: ' . $modelId->getSerialized());
+            throw new PageNotFoundException('Model not found: ' . $modelId->getSerialized());
         }
 
         return (new EditMask($environment, $model, $clone, null, null))->execute();

@@ -101,7 +101,7 @@ class CopyHandler extends AbstractRequestScopeDeterminatorHandler
      * @return void
      *
      * @throws RedirectResponseException To redirect to the edit mask with cloned model.
-     * @throws DcGeneralRuntimeException When the DataContainer is not creatable.
+     * @throws NotCreatableException     When the DataContainer is not creatable.
      */
     public function process(EnvironmentInterface $environment): void
     {

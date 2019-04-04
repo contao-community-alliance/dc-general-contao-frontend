@@ -79,7 +79,7 @@ class CreateHandler extends AbstractRequestScopeDeterminatorHandler
      *
      * @return string|bool
      *
-     * @throws DcGeneralRuntimeException         If the data container is not editable, closed.
+     * @throws NotCreatableException If the data container is not editable, closed.
      */
     public function process(EnvironmentInterface $environment)
     {
