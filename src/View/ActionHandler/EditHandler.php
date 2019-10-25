@@ -110,7 +110,7 @@ class EditHandler
 
         $dataProvider = $environment->getDataProvider();
         $model        = $dataProvider->fetch($dataProvider->getEmptyConfig()->setId($modelId->getId()));
-        $clone        = $dataProvider->getEmptyModel();
+        $clone        = clone $model;
 
         if (null === $model) {
             throw new PageNotFoundException('Model not found: ' . $modelId->getSerialized());
