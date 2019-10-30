@@ -83,7 +83,16 @@ class FrontendEditor
         $action      = new Action($actionName);
         $event       = new ActionEvent($environment, $action);
 
+        // If the action parameter is not set, it is set. So that the action parameter can be used everywhere.
+        if (false === ($hasActionName = $environment->getInputProvider()->hasParameter('act'))) {
+            $environment->getInputProvider()->setParameter('act', $actionName);
+        }
+
         $this->dispatcher->dispatch(DcGeneralEvents::ACTION, $event);
+
+        if (false === $hasActionName) {
+            $environment->getInputProvider()->unsetParameter('act');
+        }
 
         if (!$result = $event->getResponse()) {
             return 'Action ' . $action->getName() . ' is not supported yet.';
