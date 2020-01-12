@@ -103,7 +103,7 @@ class EditHandler
             throw new NotEditableException('DataContainer ' . $definition->getName() . ' is not editable');
         }
         // We only support flat tables, sorry.
-        if (BasicDefinitionInterface::MODE_FLAT !== $basicDefinition->getMode()) {
+        if (BasicDefinitionInterface::MODE_HIERARCHICAL === $basicDefinition->getMode()) {
             return false;
         }
         $modelId = ModelId::fromSerialized($environment->getInputProvider()->getParameter('id'));

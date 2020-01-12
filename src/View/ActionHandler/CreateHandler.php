@@ -102,7 +102,7 @@ class CreateHandler
             throw new NotCreatableException('DataContainer ' . $definition->getName() . ' is not creatable');
         }
         // We only support flat tables, sorry.
-        if (BasicDefinitionInterface::MODE_FLAT !== $basicDefinition->getMode()) {
+        if (BasicDefinitionInterface::MODE_HIERARCHICAL === $basicDefinition->getMode()) {
             return false;
         }
 
