@@ -86,6 +86,7 @@ class DefaultWidgetBuilder
      * @return \Widget
      *
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     public function buildWidget(
         EnvironmentInterface $environment,
