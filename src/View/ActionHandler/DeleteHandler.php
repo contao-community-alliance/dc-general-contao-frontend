@@ -109,10 +109,7 @@ class DeleteHandler
         if (!$basicDefinition->isDeletable()) {
             throw new NotDeletableException('DataContainer ' . $definition->getName() . ' is not deletable');
         }
-        // We only support flat tables, sorry.
-        if (BasicDefinitionInterface::MODE_FLAT !== $basicDefinition->getMode()) {
-            return;
-        }
+
         $modelId = ModelId::fromSerialized($environment->getInputProvider()->getParameter('id'));
 
         $dataProvider = $environment->getDataProvider();

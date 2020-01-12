@@ -115,7 +115,7 @@ class CopyHandler
             throw new NotCreatableException('DataContainer ' . $definition->getName() . ' is not creatable');
         }
         // We only support flat tables, sorry.
-        if (BasicDefinitionInterface::MODE_FLAT !== $basicDefinition->getMode()) {
+        if (BasicDefinitionInterface::MODE_HIERARCHICAL === $basicDefinition->getMode()) {
             return;
         }
         $modelId = ModelId::fromSerialized($environment->getInputProvider()->getParameter('source'));

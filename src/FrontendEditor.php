@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015-2018 Contao Community Alliance.
+ * (c) 2015-2020 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -13,7 +13,8 @@
  * @package    contao-community-alliance/dc-general-contao-frontend
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
- * @copyright  2015-2018 Contao Community Alliance.
+ * @author     Sven Baumann <baumann.sv@gmail.com>
+ * @copyright  2015-2020 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
@@ -83,7 +84,16 @@ class FrontendEditor
         $action      = new Action($actionName);
         $event       = new ActionEvent($environment, $action);
 
+        // If the action parameter is not set, it is set. So that the action parameter can be used everywhere.
+        if (false === ($hasActionName = $environment->getInputProvider()->hasParameter('act'))) {
+            $environment->getInputProvider()->setParameter('act', $actionName);
+        }
+
         $this->dispatcher->dispatch(DcGeneralEvents::ACTION, $event);
+
+        if (false === $hasActionName) {
+            $environment->getInputProvider()->unsetParameter('act');
+        }
 
         if (!$result = $event->getResponse()) {
             return 'Action ' . $action->getName() . ' is not supported yet.';
