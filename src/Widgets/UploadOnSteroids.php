@@ -28,6 +28,7 @@ use Contao\Input;
 use Contao\StringUtil;
 use Doctrine\DBAL\Connection;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
@@ -39,11 +40,16 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  *  - Can add a default image
  *  - Can add a default image
  *  - Output the Image as Thumbnail
+ *  - Normalize the extend folder (StringUtil::generateAlias)
+ *  - Can prefix and postfix the filename.
  *
  * @property boolean deselect
  * @property boolean delete
  * @property string  extendFolder
  * @property boolean normalizeExtendFolder
+ * @property boolean normalizeFilename
+ * @property string  prefixFilename
+ * @property string  postfixFilename
  * @property array   files
  * @property boolean showThumbnail
  * @property boolean multiple
@@ -98,6 +104,12 @@ class UploadOnSteroids extends FormFileUpload
      * @var Filesystem
      */
     private $filesystem;
+    /**
+     * The string util.
+     *
+     * @var StringUtil
+     */
+    private $stringUtil;
 
     public function __construct($attributes = null)
     {
@@ -126,7 +138,7 @@ class UploadOnSteroids extends FormFileUpload
         $inputName = $this->name;
 
         if ($this->normalizeExtendFolder) {
-            $this->extendFolder = $this->getStringUtil()->generateAlias($this->extendFolder);
+            $this->extendFolder = $this->str()->generateAlias($this->extendFolder);
         }
 
         if ($this->extendFolder) {
@@ -165,10 +177,13 @@ class UploadOnSteroids extends FormFileUpload
         }
 
         $inputName = $this->name;
+        if (isset($_FILES[$inputName]['name'])) {
+            $_FILES[$inputName]['name'] = $this->parseFilename($_FILES[$inputName]['name']);
+        }
 
         parent::validate();
 
-        if ($this->hasErrors() || !isset($_SESSION['FILES'][$inputName])) {
+        if (!isset($_SESSION['FILES'][$inputName]) || $this->hasErrors()) {
             return;
         }
 
@@ -197,7 +212,9 @@ class UploadOnSteroids extends FormFileUpload
         $files      = [];
         $inputFiles = $this->getMultipleUploadedFiles();
         foreach ($inputFiles as $inputFile) {
-            $_FILES[$this->name] = $inputFile;
+            $_FILES[$inputName] = $inputFile;
+
+            $_FILES[$inputName]['name'] = $this->parseFilename($_FILES[$inputName]['name']);
 
             parent::validate();
 
@@ -225,6 +242,18 @@ class UploadOnSteroids extends FormFileUpload
     }
 
     /**
+     * Parse the filename.
+     *
+     * @param string $filename The filename.
+     *
+     * @return string
+     */
+    private function parseFilename(string $filename): string
+    {
+        return $this->normalizeFilename($this->preOrPostFixFilename($filename));
+    }
+
+    /**
      * Get the multiple uploaded files.
      *
      * @return array
@@ -244,7 +273,6 @@ class UploadOnSteroids extends FormFileUpload
 
         return $files;
     }
-
 
     /**
      * {@inheritDoc}
@@ -334,6 +362,66 @@ class UploadOnSteroids extends FormFileUpload
         }
 
         $this->value = \array_map('\Contao\StringUtil::uuidToBin', $diffValues);
+    }
+
+    /**
+     * Normalize the filename.
+     *
+     * @param array $file The file information.
+     *
+     * @return void
+     */
+    /**
+     * Normalize the filename.
+     *
+     * @param string $filename The filename.
+     *
+     * @return string
+     */
+    private function normalizeFilename(string $filename): string
+    {
+        if (!$this->normalizeFilename) {
+            return $filename;
+        }
+
+        $fileInfo = \pathinfo($filename);
+
+        $currentExtension   = $fileInfo['extension'];
+        $normalizeExtension = $this->stringUtil()->generateAlias($currentExtension);
+
+        $currentFilename   = $fileInfo['filename'];
+        $normalizeFilename = $this->stringUtil()->generateAlias($currentFilename);
+
+        return $normalizeFilename . '.' . $normalizeExtension;
+    }
+
+    /**
+     * Prefix or postfix the filename.
+     *
+     * @param string $filename The filename
+     *
+     * @return string
+     */
+    private function preOrPostFixFilename(string $filename): string
+    {
+        if (!$this->prefixFilename || !$this->postfixFilename) {
+            return $filename;
+        }
+
+        $fileInfo = \pathinfo($filename);
+
+        $extension = $fileInfo['extension'];
+
+        $currentFilename = $fileInfo['filename'];
+        $extendFilename  = ($this->prefixFilename ?: '') .
+                           'place-holder-extend-filename' .
+                           ($this->postfixFilename ?: '');
+        if ($this->normalizeFilename) {
+            $extendFilename = $this->getStringUtil()->generateAlias($extendFilename);
+        }
+        $extendFilename = \str_replace('place-holder-extend-filename', $currentFilename, $extendFilename);
+
+        return $extendFilename . '.' . $extension;
     }
 
     /**
@@ -488,6 +576,20 @@ class UploadOnSteroids extends FormFileUpload
         }
 
         return $this->filesystem;
+    }
+
+    /**
+     * Get the string util.
+     *
+     * @return Adapter|StringUtil
+     */
+    private function stringUtil(): Adapter
+    {
+        if (!$this->stringUtil) {
+            $this->stringUtil = self::getContainer()->get('contao.framework')->getAdapter(StringUtil::class);
+        }
+
+        return $this->stringUtil;
     }
 
     /**
