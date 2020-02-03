@@ -43,6 +43,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * @property boolean deselect
  * @property boolean delete
  * @property string  extendFolder
+ * @property boolean normalizeExtendFolder
  * @property array   files
  * @property boolean showThumbnail
  * @property boolean multiple
@@ -123,6 +124,10 @@ class UploadOnSteroids extends FormFileUpload
     public function validate()
     {
         $inputName = $this->name;
+
+        if ($this->normalizeExtendFolder) {
+            $this->extendFolder = $this->getStringUtil()->generateAlias($this->extendFolder);
+        }
 
         if ($this->extendFolder) {
             $uploadFolder     = $this->filesModel()->findByUuid($this->uploadFolder);
