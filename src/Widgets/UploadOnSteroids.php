@@ -121,7 +121,21 @@ class UploadOnSteroids extends FormFileUpload
      */
     public function __set($key, $value)
     {
-        if (\in_array($key, ['deselect', 'delete', 'extendFolder', 'files', 'showThumbnail', 'multiple'])) {
+        if (\in_array(
+            $key,
+            [
+                'deselect',
+                'delete',
+                'extendFolder',
+                'normalizeExtendFolder',
+                'normalizeFilename',
+                'prefixFilename',
+                'postfixFilename',
+                'files',
+                'showThumbnail',
+                'multiple'
+            ]
+        )) {
             $this->arrConfiguration[$key] = $value;
 
             return;
@@ -417,7 +431,7 @@ class UploadOnSteroids extends FormFileUpload
                            'place-holder-extend-filename' .
                            ($this->postfixFilename ?: '');
         if ($this->normalizeFilename) {
-            $extendFilename = $this->getStringUtil()->generateAlias($extendFilename);
+            $extendFilename = $this->stringUtil()->generateAlias($extendFilename);
         }
         $extendFilename = \str_replace('place-holder-extend-filename', $currentFilename, $extendFilename);
 
