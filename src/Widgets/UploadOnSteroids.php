@@ -147,6 +147,34 @@ class UploadOnSteroids extends FormFileUpload
     /**
      * {@inheritDoc}
      */
+    public function parse($attributes = null)
+    {
+        $this->addIsDeletable();
+        $this->addIsDeselectable();
+        $this->addIsMultiple();
+        $this->addShowThumbnail();
+        $this->addFiles();
+
+        $this->value = \implode(',', \array_map('\Contao\StringUtil::binToUuid', (array) $this->value));
+
+        return parent::parse($attributes);
+    }
+
+    /**
+     * Parse the filename.
+     *
+     * @param string $filename The filename.
+     *
+     * @return string
+     */
+    public function parseFilename(string $filename): string
+    {
+        return $this->normalizeFilename($this->preOrPostFixFilename($filename));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function validate()
     {
         $inputName = $this->name;
@@ -256,18 +284,6 @@ class UploadOnSteroids extends FormFileUpload
     }
 
     /**
-     * Parse the filename.
-     *
-     * @param string $filename The filename.
-     *
-     * @return string
-     */
-    private function parseFilename(string $filename): string
-    {
-        return $this->normalizeFilename($this->preOrPostFixFilename($filename));
-    }
-
-    /**
      * Get the multiple uploaded files.
      *
      * @return array
@@ -286,22 +302,6 @@ class UploadOnSteroids extends FormFileUpload
         }
 
         return $files;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function parse($attributes = null)
-    {
-        $this->addIsDeletable();
-        $this->addIsDeselectable();
-        $this->addIsMultiple();
-        $this->addShowThumbnail();
-        $this->addFiles();
-
-        $this->value = \implode(',', \array_map('\Contao\StringUtil::binToUuid', (array) $this->value));
-
-        return parent::parse($attributes);
     }
 
     /**
