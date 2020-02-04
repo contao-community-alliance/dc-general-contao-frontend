@@ -28,7 +28,6 @@ use Contao\Input;
 use Contao\StringUtil;
 use Doctrine\DBAL\Connection;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
@@ -169,6 +168,10 @@ class UploadOnSteroids extends FormFileUpload
      */
     public function parseFilename(string $filename): string
     {
+        if (empty($filename) || !\is_string($filename)) {
+            return $filename;
+        }
+
         return $this->normalizeFilename($this->preOrPostFixFilename($filename));
     }
 
@@ -219,9 +222,7 @@ class UploadOnSteroids extends FormFileUpload
         }
 
         $inputName = $this->name;
-        if (isset($_FILES[$inputName]['name'])) {
-            $_FILES[$inputName]['name'] = $this->parseFilename($_FILES[$inputName]['name']);
-        }
+        $_FILES[$inputName]['name'] = $this->parseFilename($_FILES[$inputName]['name']);
 
         parent::validate();
 
@@ -418,7 +419,7 @@ class UploadOnSteroids extends FormFileUpload
      */
     private function preOrPostFixFilename(string $filename): string
     {
-        if (!$this->prefixFilename || !$this->postfixFilename) {
+        if (!($this->prefixFilename || $this->postfixFilename)) {
             return $filename;
         }
 
