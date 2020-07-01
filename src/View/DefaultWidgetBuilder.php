@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015-2019 Contao Community Alliance.
+ * (c) 2015-2020 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -13,7 +13,8 @@
  * @package    contao-community-alliance/dc-general-contao-frontend
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
- * @copyright  2015-2019 Contao Community Alliance.
+ * @author     Ingolf Steinhardt <info@e-spin.de>
+ * @copyright  2015-2020 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
@@ -115,16 +116,21 @@ class DefaultWidgetBuilder
         if ($propExtra['readonly'] && \in_array($property->getWidgetType(), ['checkbox', 'select'], true)) {
             $propExtra['disabled'] = true;
         }
+
+        $propExtra['class'] = $this->addCssClass($propExtra['class'], 'prop-' . $propertyName);
+
         if (isset($propExtra['datepicker'])) {
             $propExtra['class'] = $this->addCssClass($propExtra['class'], 'datepicker');
             $propExtra['class'] = $this->addCssClass($propExtra['class'], '-' . $propExtra['rgxp']);
         }
+
         if (isset($propExtra['colorpicker'])) {
             $propExtra['class'] = $this->addCssClass($propExtra['class'], 'colorpicker');
             if (isset($propExtra['isHexColor'])) {
                 $propExtra['class'] = $this->addCssClass($propExtra['class'], '-hex-color');
             }
         }
+
         if (isset($propExtra['rte'])) {
             $propExtra['class'] = $this->addCssClass($propExtra['class'], 'rte');
             $propExtra['class'] = $this->addCssClass($propExtra['class'], '-' . $propExtra['rte']);
@@ -132,7 +138,7 @@ class DefaultWidgetBuilder
 
         // Add the (backend) css class for the frontend as well.
         if (isset($propExtra['tl_class'])) {
-            $this->addCssClass($propExtra['class'], $propExtra['tl_class']);
+            $propExtra['class'] = $this->addCssClass($propExtra['class'], $propExtra['tl_class']);
         }
 
         $arrConfig = array(
