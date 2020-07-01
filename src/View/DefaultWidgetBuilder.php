@@ -116,16 +116,21 @@ class DefaultWidgetBuilder
         if ($propExtra['readonly'] && \in_array($property->getWidgetType(), ['checkbox', 'select'], true)) {
             $propExtra['disabled'] = true;
         }
+
+        $propExtra['class'] = $this->addCssClass($propExtra['class'], 'prop-' . $propertyName);
+
         if (isset($propExtra['datepicker'])) {
             $propExtra['class'] = $this->addCssClass($propExtra['class'], 'datepicker');
             $propExtra['class'] = $this->addCssClass($propExtra['class'], '-' . $propExtra['rgxp']);
         }
+
         if (isset($propExtra['colorpicker'])) {
             $propExtra['class'] = $this->addCssClass($propExtra['class'], 'colorpicker');
             if (isset($propExtra['isHexColor'])) {
                 $propExtra['class'] = $this->addCssClass($propExtra['class'], '-hex-color');
             }
         }
+
         if (isset($propExtra['rte'])) {
             $propExtra['class'] = $this->addCssClass($propExtra['class'], 'rte');
             $propExtra['class'] = $this->addCssClass($propExtra['class'], '-' . $propExtra['rte']);
