@@ -19,8 +19,9 @@ env:
 
 # Exclude impossible Contao Version combinations.
 matrix:
-  exclude:
+  fast_finish: true
   allow_failures:
+    - php: "7.4"
     - env: CONTAO_VERSION=~4.8.0
 
 before_script:
