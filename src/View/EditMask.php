@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015-2018 Contao Community Alliance.
+ * (c) 2015-2020 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -13,7 +13,8 @@
  * @package    contao-community-alliance/dc-general-contao-frontend
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
- * @copyright  2015-2018 Contao Community Alliance.
+ * @author     Sven Baumann <baumann.sv@gmail.com>
+ * @copyright  2015-2020 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
@@ -315,17 +316,25 @@ class EditMask
      */
     private function getEditButtons()
     {
+        $button  = '<button type="submit" name="%s" id="%s" class="submit %s" accesskey="%s">%s</button>';
         $buttons = [];
 
         $buttons['save'] = sprintf(
-            '<input type="submit" name="save" class="submit save" accesskey="s" value="%s">',
+            $button,
+            'save',
+            'save',
+            'save',
+            's',
             $this->translateLabel('save')
         );
 
         if ($this->definition->getBasicDefinition()->isCreatable()) {
             $buttons['saveNcreate'] = sprintf(
-                '<input type="submit" name="saveNcreate" class="submit saveNcreate" accesskey="n" ' .
-                ' value="%s">',
+                $button,
+                'saveNcreate',
+                'saveNcreate',
+                'saveNcreate',
+                'n',
                 $this->translateLabel('saveNcreate')
             );
         }
