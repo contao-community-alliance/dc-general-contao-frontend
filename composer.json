@@ -35,7 +35,8 @@
   },
   "require-dev": {
     "contao/manager-plugin": "^2.8",
-    "phpcq/all-tasks": "~1.2"
+    "phpcq/all-tasks": "~1.2",
+    "phpmd/phpmd": "~2.8.2"
   },
   "autoload": {
     "psr-4": {
