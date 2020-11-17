@@ -14,6 +14,7 @@
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
  * @author     Sven Baumann <baumann.sv@gmail.com>
+ * @author     Ingolf Steinhardt <info@e-spin.de>
  * @copyright  2015-2020 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
@@ -195,7 +196,8 @@ class EditMask
                 'table'       => $this->definition->getName(),
                 'enctype'     => 'multipart/form-data',
                 'error'       => $this->errors,
-                'editButtons' => $buttons
+                'editButtons' => $buttons,
+                'model'       => $this->model
             ]
         );
 
