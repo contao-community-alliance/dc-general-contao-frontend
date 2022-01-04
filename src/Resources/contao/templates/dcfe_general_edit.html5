@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015 Contao Community Alliance.
+ * (c) 2015-2021 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,7 +12,8 @@
  *
  * @package    contao-community-alliance/dc-general-contao-frontend
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
- * @copyright  2015 Contao Community Alliance.
+ * @author     Ingolf Steinhardt <info@e-spin.de>
+ * @copyright  2015-2021 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
@@ -26,12 +27,12 @@
       enctype="<?= $this->enctype; ?>"
 >
     <div class="formbody_edit">
-        <input type="hidden" name="FORM_SUBMIT" value="<?= specialchars($this->table); ?>"/>
+        <input type="hidden" name="FORM_SUBMIT" value="<?= \Contao\StringUtil::specialchars($this->table); ?>"/>
         <input type="hidden" name="REQUEST_TOKEN" value="<?= REQUEST_TOKEN; ?>"/>
         <?php if ($this->error): ?><p class="tl_error"><?= implode('<br />', $this->error); ?></p><?php endif; ?>
         <?php foreach ($this->fieldsets as $arrFieldset): ?>
             <?php if ($arrFieldset['legend']): ?>
-                <fieldset id="pal_<?= specialchars($arrFieldset['legend']); ?>"
+                <fieldset id="pal_<?= \Contao\StringUtil::specialchars($arrFieldset['legend']); ?>"
                           class="<?= $arrFieldset['class']; ?> block">
                     <legend><?= $arrFieldset['label']; ?></legend>
                     <?= $arrFieldset['palette']; ?>
@@ -49,3 +50,14 @@
         </div>
     </div>
 </form>
+<?php
+$GLOBALS['TL_BODY'][] = '
+<script>
+const form = document.getElementById("' . $this->table . '");
+form.querySelectorAll("button.notsave").forEach(abortButton => {
+    abortButton.addEventListener("click", () => {
+        form.noValidate = true;
+    }, true);
+});
+</script>';
+?>
