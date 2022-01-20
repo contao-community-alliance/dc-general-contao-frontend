@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015-2020 Contao Community Alliance.
+ * (c) 2015-2022 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -14,7 +14,8 @@
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
  * @author     Sven Baumann <baumann.sv@gmail.com>
- * @copyright  2015-2020 Contao Community Alliance.
+ * @author     Ingolf Steinhardt <info@e-spin.de>
+ * @copyright  2015-2022 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
@@ -103,19 +104,22 @@ class EditHandler
         if (!$basicDefinition->isEditable()) {
             throw new NotEditableException('DataContainer ' . $definition->getName() . ' is not editable');
         }
+
         // We only support flat tables, sorry.
         if (BasicDefinitionInterface::MODE_HIERARCHICAL === $basicDefinition->getMode()) {
             return false;
         }
+
         $modelId = ModelId::fromSerialized($environment->getInputProvider()->getParameter('id'));
 
         $dataProvider = $environment->getDataProvider();
         $model        = $dataProvider->fetch($dataProvider->getEmptyConfig()->setId($modelId->getId()));
-        $clone        = clone $model;
 
         if (null === $model) {
             throw new PageNotFoundException('Model not found: ' . $modelId->getSerialized());
         }
+
+        $clone = clone $model;
 
         return (new EditMask($environment, $model, $clone, null, null))->execute();
     }
