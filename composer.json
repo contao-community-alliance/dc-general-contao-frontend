@@ -27,9 +27,9 @@
   },
   "require": {
     "php":"^7.2",
-    "contao-community-alliance/dc-general": "^2.2@dev",
+    "contao-community-alliance/dc-general": "^2.2",
     "contao-community-alliance/url-builder": "~1.1",
-    "contao-community-alliance/translator": "^2.1",
+    "contao-community-alliance/translator": "^2.2",
     "contao/core-bundle": "^4.9",
     "symfony/event-dispatcher": "4.4.*"
   },
@@ -46,8 +46,8 @@
   "extra":{
     "contao-manager-plugin": "ContaoCommunityAlliance\\DcGeneral\\ContaoFrontend\\ContaoManager\\Plugin",
     "branch-alias": {
-      "dev-master": "2.1.x-dev",
-      "dev-release/2.2.0": "2.2.x-dev"
+      "dev-support/2.1.x": "2.1.x-dev",
+      "dev-master": "2.2.x-dev"
     }
   },
   "config": {
