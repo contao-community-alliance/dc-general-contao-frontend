@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015-2018 Contao Community Alliance.
+ * (c) 2015-2022 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,13 +12,15 @@
  *
  * @package    contao-community-alliance/dc-general-contao-frontend
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
- * @copyright  2015-2018 Contao Community Alliance.
+ * @author     Ingolf Steinhardt <info@e-spin.de>
+ * @copyright  2015-2022 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
 
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\ActionHandler;
 
+use Contao\CoreBundle\Exception\PageNotFoundException;
 use Contao\CoreBundle\Exception\RedirectResponseException;
 use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminator;
 use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminatorAwareTrait;
@@ -114,6 +116,10 @@ class DeleteHandler
 
         $dataProvider = $environment->getDataProvider();
         $model        = $dataProvider->fetch($dataProvider->getEmptyConfig()->setId($modelId->getId()));
+
+        if (null === $model) {
+            throw new PageNotFoundException('Model not found: ' . $modelId->getSerialized());
+        }
 
         // Trigger event before the model will be deleted.
         $event = new PreDeleteModelEvent($environment, $model);
