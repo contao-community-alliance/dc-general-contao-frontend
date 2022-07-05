@@ -514,7 +514,7 @@ class UploadOnSteroids extends FormFileUpload
             ->where($builder->expr()->in($platform->quoteIdentifier('uuid'), ':uuids'))
             ->setParameter('uuids', (array) $this->value, Connection::PARAM_STR_ARRAY);
 
-        $statement = $builder->execute();
+        $statement = $builder->executeQuery();
         if (!$statement->rowCount()) {
             return;
         }
