@@ -46,8 +46,6 @@
   "extra":{
     "contao-manager-plugin": "ContaoCommunityAlliance\\DcGeneral\\ContaoFrontend\\ContaoManager\\Plugin",
     "branch-alias": {
-      "dev-support/2.1.x": "2.1.x-dev",
-      "dev-master": "2.2.x-dev",
       "dev-feature/2.3.0": "2.3.x-dev"
     }
   },
