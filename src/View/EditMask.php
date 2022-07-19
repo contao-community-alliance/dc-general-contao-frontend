@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015-2020 Contao Community Alliance.
+ * (c) 2015-2022 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,7 +15,7 @@
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
  * @author     Sven Baumann <baumann.sv@gmail.com>
  * @author     Ingolf Steinhardt <info@e-spin.de>
- * @copyright  2015-2020 Contao Community Alliance.
+ * @copyright  2015-2022 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
@@ -163,7 +163,7 @@ class EditMask
         $isAutoSubmit       = ($inputProvider->getValue('SUBMIT_TYPE') === 'auto');
         $widgetManager      = new WidgetManager($this->environment, $this->model);
 
-        $this->dispatcher->dispatch(PreEditModelEvent::NAME, new PreEditModelEvent($this->environment, $this->model));
+        $this->dispatcher->dispatch(new PreEditModelEvent($this->environment, $this->model), PreEditModelEvent::NAME);
 
         $this->enforceModelRelationship();
 
@@ -213,7 +213,7 @@ class EditMask
     {
         $event = new EnforceModelRelationshipEvent($this->environment, $this->model);
 
-        $this->dispatcher->dispatch(DcGeneralEvents::ENFORCE_MODEL_RELATIONSHIP, $event);
+        $this->dispatcher->dispatch($event, DcGeneralEvents::ENFORCE_MODEL_RELATIONSHIP);
     }
 
     /**
@@ -260,8 +260,8 @@ class EditMask
         }
 
         $this->dispatcher->dispatch(
-            PrePersistModelEvent::NAME,
-            new PrePersistModelEvent($this->environment, $this->model, $this->originalModel)
+            new PrePersistModelEvent($this->environment, $this->model, $this->originalModel),
+            PrePersistModelEvent::NAME
         );
     }
 
@@ -277,7 +277,7 @@ class EditMask
         }
 
         $event = new PostPersistModelEvent($this->environment, $this->model, $this->originalModel);
-        $this->dispatcher->dispatch($event::NAME, $event);
+        $this->dispatcher->dispatch($event, $event::NAME);
     }
 
     /**
@@ -344,7 +344,7 @@ class EditMask
         $event = new GetEditModeButtonsEvent($this->environment);
         $event->setButtons($buttons);
 
-        $this->dispatcher->dispatch($event::NAME, $event);
+        $this->dispatcher->dispatch($event, $event::NAME);
 
         return $event->getButtons();
     }
@@ -489,7 +489,7 @@ class EditMask
             if ($inputProvider->hasValue($button)) {
                 $event = new HandleSubmitEvent($this->environment, $this->model, $button);
 
-                $this->dispatcher->dispatch(DcGeneralFrontendEvents::HANDLE_SUBMIT, $event);
+                $this->dispatcher->dispatch($event, DcGeneralFrontendEvents::HANDLE_SUBMIT);
 
                 break;
             }

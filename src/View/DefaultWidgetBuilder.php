@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015-2020 Contao Community Alliance.
+ * (c) 2015-2022 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -14,7 +14,7 @@
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
  * @author     Ingolf Steinhardt <info@e-spin.de>
- * @copyright  2015-2020 Contao Community Alliance.
+ * @copyright  2015-2022 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
@@ -99,6 +99,7 @@ class DefaultWidgetBuilder
         $propExtra    = $property->getExtra();
         $defName      = $environment->getDataDefinition()->getName();
         $strClass     = $this->getWidgetClass($property);
+
         if (null === $strClass) {
             return null;
         }
@@ -108,13 +109,19 @@ class DefaultWidgetBuilder
             ->setProperty($propertyName)
             ->setValue($model->getProperty($propertyName));
 
-        $dispatcher->dispatch($event::NAME, $event);
+        $dispatcher->dispatch($event,$event::NAME);
         $varValue = $event->getValue();
 
         $propExtra['required']  = ($varValue == '') && !empty($propExtra['mandatory']);
         $propExtra['tableless'] = true;
-        if ($propExtra['readonly'] && \in_array($property->getWidgetType(), ['checkbox', 'select'], true)) {
+        if (isset($propExtra['readonly'])
+            && $propExtra['readonly']
+            && \in_array($property->getWidgetType(), ['checkbox', 'select'], true)) {
             $propExtra['disabled'] = true;
+        }
+
+        if (!isset($propExtra['class'])) {
+            $propExtra['class'] = '';
         }
 
         $propExtra['class'] = $this->addCssClass($propExtra['class'], 'prop-' . $propertyName);
@@ -164,7 +171,7 @@ class DefaultWidgetBuilder
             new DcCompat($environment, $model, $propertyName)
         );
 
-        $dispatcher->dispatch(ContaoEvents::WIDGET_GET_ATTRIBUTES_FROM_DCA, $event);
+        $dispatcher->dispatch($event, ContaoEvents::WIDGET_GET_ATTRIBUTES_FROM_DCA);
         $preparedConfig = $event->getResult();
 
         // Remove the "Backend.autoSubmit()", add css class for this purpose
@@ -178,7 +185,7 @@ class DefaultWidgetBuilder
         $widget->currentRecord = $model->getId();
 
         $event = new ManipulateWidgetEvent($environment, $model, $property, $widget);
-        $dispatcher->dispatch(ManipulateWidgetEvent::NAME, $event);
+        $dispatcher->dispatch($event, ManipulateWidgetEvent::NAME);
 
         return $widget;
     }
@@ -228,7 +235,7 @@ class DefaultWidgetBuilder
         $event      = new GetPropertyOptionsEvent($environment, $model);
         $event->setPropertyName($propInfo->getName());
         $event->setOptions($options);
-        $dispatcher->dispatch(GetPropertyOptionsEvent::NAME, $event);
+        $dispatcher->dispatch($event, GetPropertyOptionsEvent::NAME);
 
         if ($event->getOptions() !== $options) {
             return $event->getOptions();

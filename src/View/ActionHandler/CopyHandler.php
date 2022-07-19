@@ -134,7 +134,7 @@ class CopyHandler
 
         // Dispatch pre duplicate event.
         $copyEvent = new PreDuplicateModelEvent($environment, $copyModel, $model);
-        $dispatcher->dispatch($copyEvent::NAME, $copyEvent);
+        $dispatcher->dispatch($copyEvent, $copyEvent::NAME);
 
         // Save the copy.
         $provider = $environment->getDataProvider($copyModel->getProviderName());
@@ -142,7 +142,7 @@ class CopyHandler
 
         // Dispatch post duplicate event.
         $copyEvent = new PostDuplicateModelEvent($environment, $copyModel, $model);
-        $dispatcher->dispatch($copyEvent::NAME, $copyEvent);
+        $dispatcher->dispatch($copyEvent, $copyEvent::NAME);
 
         // Redirect to the edit mask of the cloned model
         throw new RedirectResponseException(

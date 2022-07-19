@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015-2020 Contao Community Alliance.
+ * (c) 2015-2022 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -14,7 +14,8 @@
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
  * @author     Sven Baumann <baumann.sv@gmail.com>
- * @copyright  2015-2020 Contao Community Alliance.
+ * @author     Ingolf Steinhardt <info@e-spin.de>
+ * @copyright  2015-2022 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
@@ -72,7 +73,6 @@ class FrontendEditor
      * Create a frontend editor for the given table.
      *
      * @param string $containerName The name of the data container to edit.
-     *
      * @param string $defaultAction The default action to issue, if none provided by the input provider.
      *
      * @return string
@@ -89,7 +89,7 @@ class FrontendEditor
             $environment->getInputProvider()->setParameter('act', $actionName);
         }
 
-        $this->dispatcher->dispatch(DcGeneralEvents::ACTION, $event);
+        $this->dispatcher->dispatch($event, DcGeneralEvents::ACTION);
 
         if (false === $hasActionName) {
             $environment->getInputProvider()->unsetParameter('act');

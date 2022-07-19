@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015-2020 Contao Community Alliance.
+ * (c) 2015-2022 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -14,7 +14,7 @@
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
  * @author     Ingolf Steinhardt <info@e-spin.de>
- * @copyright  2015-2020 Contao Community Alliance.
+ * @copyright  2015-2022 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
@@ -101,7 +101,7 @@ class WidgetManager
         $propertyDefinition = $propertyDefinitions->getProperty($property);
         $event              = new BuildWidgetEvent($environment, $model, $propertyDefinition);
 
-        $dispatcher->dispatch(DcGeneralFrontendEvents::BUILD_WIDGET, $event);
+        $dispatcher->dispatch($event, DcGeneralFrontendEvents::BUILD_WIDGET);
         if (!$event->getWidget()) {
             throw new DcGeneralRuntimeException(
                 sprintf('Widget was not build for property %s::%s.', $this->model->getProviderName(), $property)
@@ -277,9 +277,7 @@ class WidgetManager
      * Encode a value from the widget to native data of the data provider via event.
      *
      * @param string           $property The property.
-     *
      * @param mixed            $value    The value of the property.
-     *
      * @param PropertyValueBag $valueBag The property value bag the property value originates from.
      *
      * @return mixed
@@ -293,7 +291,7 @@ class WidgetManager
             ->setProperty($property)
             ->setValue($value);
 
-        $environment->getEventDispatcher()->dispatch(EncodePropertyValueFromWidgetEvent::NAME, $event);
+        $environment->getEventDispatcher()->dispatch($event, EncodePropertyValueFromWidgetEvent::NAME);
 
         return $event->getValue();
     }
