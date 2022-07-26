@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2016-2019 Contao Community Alliance.
+ * (c) 2016-2022 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,7 +12,8 @@
  *
  * @package    contao-community-alliance/dc-general-contao-frontend
  * @author     Sven Baumann <baumann.sv@gmail.com>
- * @copyright  2016-2019 Contao Community Alliance.
+ * @author     Ingolf Steinhardt <info@e-spin.de>
+ * @copyright  2016-2022 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE
  *             LGPL-3.0-or-later
  * @filesource
@@ -20,12 +21,14 @@
 
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Widgets;
 
+use Contao\CoreBundle\Slug\Slug as SlugGenerator;
 use Contao\CoreBundle\Framework\Adapter;
 use Contao\Dbafs;
 use Contao\FilesModel;
 use Contao\FormFileUpload;
 use Contao\Input;
 use Contao\StringUtil;
+use Contao\System;
 use Doctrine\DBAL\Connection;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -39,7 +42,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  *  - Can add a default image
  *  - Can add a default image
  *  - Output the Image as Thumbnail
- *  - Normalize the extend folder (StringUtil::generateAlias)
+ *  - Normalize the extent folder
  *  - Can prefix and postfix the filename.
  *
  * @property boolean deselect
@@ -81,7 +84,7 @@ class UploadOnSteroids extends FormFileUpload
      *
      * @var TranslatorInterface
      */
-    protected $translator;
+    protected TranslatorInterface $translator;
 
     /**
      * The input provider;
@@ -103,12 +106,13 @@ class UploadOnSteroids extends FormFileUpload
      * @var Filesystem
      */
     private $filesystem;
+
     /**
-     * The string util.
+     * The slug generator.
      *
-     * @var StringUtil
+     * @var SlugGenerator
      */
-    private $stringUtil;
+    private $slugGenerator;
 
     public function __construct($attributes = null)
     {
@@ -172,7 +176,7 @@ class UploadOnSteroids extends FormFileUpload
             return $filename;
         }
 
-        return $this->normalizeFilename($this->preOrPostFixFilename($filename));
+        return $this->normalizeFilename($filename);
     }
 
     /**
@@ -183,7 +187,7 @@ class UploadOnSteroids extends FormFileUpload
         $inputName = $this->name;
 
         if ($this->normalizeExtendFolder) {
-            $this->extendFolder = $this->str()->generateAlias($this->extendFolder);
+            $this->extendFolder = $this->slugGenerator()->generate($this->extendFolder, $this->getSlugOptions());
         }
 
         if ($this->extendFolder) {
@@ -221,7 +225,7 @@ class UploadOnSteroids extends FormFileUpload
             return;
         }
 
-        $inputName = $this->name;
+        $inputName                  = $this->name;
         $_FILES[$inputName]['name'] = $this->parseFilename($_FILES[$inputName]['name']);
 
         parent::validate();
@@ -337,7 +341,7 @@ class UploadOnSteroids extends FormFileUpload
     /**
      * Delete the file, if is mark for delete.
      *
-     * @param string $inputName The input nanme.
+     * @param string $inputName The input name.
      *
      * @return void
      */
@@ -360,6 +364,8 @@ class UploadOnSteroids extends FormFileUpload
                 $file->delete();
             }
 
+            Dbafs::deleteResource($file->path);
+
             return;
         }
 
@@ -374,18 +380,12 @@ class UploadOnSteroids extends FormFileUpload
 
             $this->filesystem()->remove($file->path);
             $file->delete();
+            Dbafs::deleteResource($file->path);
         }
 
         $this->value = \array_map('\Contao\StringUtil::uuidToBin', $diffValues);
     }
 
-    /**
-     * Normalize the filename.
-     *
-     * @param array $file The file information.
-     *
-     * @return void
-     */
     /**
      * Normalize the filename.
      *
@@ -402,12 +402,12 @@ class UploadOnSteroids extends FormFileUpload
         $fileInfo = \pathinfo($filename);
 
         $currentExtension   = $fileInfo['extension'];
-        $normalizeExtension = $this->stringUtil()->generateAlias($currentExtension);
+        $normalizeExtension = $this->slugGenerator()->generate($currentExtension, $this->getSlugOptions());
 
         $currentFilename   = $fileInfo['filename'];
-        $normalizeFilename = $this->stringUtil()->generateAlias($currentFilename);
+        $normalizeFilename = $this->slugGenerator()->generate($currentFilename, $this->getSlugOptions());
 
-        return $normalizeFilename . '.' . $normalizeExtension;
+        return $this->preOrPostFixFilename($normalizeFilename) . '.' . $normalizeExtension;
     }
 
     /**
@@ -423,20 +423,14 @@ class UploadOnSteroids extends FormFileUpload
             return $filename;
         }
 
-        $fileInfo = \pathinfo($filename);
+        $prefix  = $this->prefixFilename
+            ? $this->slugGenerator()->generate($this->prefixFilename, $this->getSlugOptions())
+            : '';
+        $postfix = $this->postfixFilename
+            ? $this->slugGenerator()->generate($this->postfixFilename, $this->getSlugOptions())
+            : '';
 
-        $extension = $fileInfo['extension'];
-
-        $currentFilename = $fileInfo['filename'];
-        $extendFilename  = ($this->prefixFilename ?: '') .
-                           'place-holder-extend-filename' .
-                           ($this->postfixFilename ?: '');
-        if ($this->normalizeFilename) {
-            $extendFilename = $this->stringUtil()->generateAlias($extendFilename);
-        }
-        $extendFilename = \str_replace('place-holder-extend-filename', $currentFilename, $extendFilename);
-
-        return $extendFilename . '.' . $extension;
+        return $prefix . $filename . $postfix;
     }
 
     /**
@@ -476,7 +470,7 @@ class UploadOnSteroids extends FormFileUpload
             )
             ->from($platform->quoteIdentifier('tl_files'))
             ->where($builder->expr()->in($platform->quoteIdentifier('uuid'), ':uuids'))
-            ->setParameter(':uuids', (array) $this->value, Connection::PARAM_STR_ARRAY);
+            ->setParameter('uuids', (array) $this->value, Connection::PARAM_STR_ARRAY);
 
         $statement = $builder->execute();
         if (!$statement->rowCount()) {
@@ -501,7 +495,7 @@ class UploadOnSteroids extends FormFileUpload
         array $parameters = [],
         ?string $domain = 'contao_default',
         ?string $locale = null
-    ) {
+    ): string {
         return $this->translator()->trans($transId, $parameters, $domain, $locale);
     }
 
@@ -516,7 +510,7 @@ class UploadOnSteroids extends FormFileUpload
     }
 
     /**
-     * Add file is deselectable.
+     * Add file is deselect able.
      *
      * @return void
      */
@@ -584,7 +578,7 @@ class UploadOnSteroids extends FormFileUpload
      *
      * @return Filesystem
      */
-    private function filesystem(): Filesystem
+    private function filesystem()
     {
         if (!$this->filesystem) {
             $this->filesystem = self::getContainer()->get('filesystem');
@@ -594,17 +588,28 @@ class UploadOnSteroids extends FormFileUpload
     }
 
     /**
-     * Get the string util.
+     * Get the slug generator.
      *
-     * @return Adapter|StringUtil
+     * @return SlugGenerator
      */
-    private function stringUtil(): Adapter
+    private function slugGenerator()
     {
-        if (!$this->stringUtil) {
-            $this->stringUtil = self::getContainer()->get('contao.framework')->getAdapter(StringUtil::class);
+        if (!$this->slugGenerator) {
+            $this->slugGenerator = System::getContainer()->get('contao.slug');
         }
 
-        return $this->stringUtil;
+        return $this->slugGenerator;
+    }
+
+    /**
+     * Get the slug options.
+     *
+     * @return array
+     */
+    protected function getSlugOptions(): array
+    {
+        // TODO: make configurable.
+        return ['locale' => 'de', 'validChars' => '0-9a-z_-'];
     }
 
     /**
