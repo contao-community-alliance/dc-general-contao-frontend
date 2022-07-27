@@ -136,7 +136,9 @@ class UploadOnSteroids extends FormFileUpload
                 'postfixFilename',
                 'files',
                 'showThumbnail',
-                'multiple'
+                'multiple',
+                'imageSize',
+                'sortBy'
             ]
         )) {
             $this->arrConfiguration[$key] = $value;
@@ -156,7 +158,7 @@ class UploadOnSteroids extends FormFileUpload
         $this->addIsDeselectable();
         $this->addIsMultiple();
         $this->addShowThumbnail();
-        $this->addFiles();
+        $this->addFiles($this->sortBy);
 
         $this->value = \implode(',', \array_map('\Contao\StringUtil::binToUuid', (array) $this->value));
 
@@ -436,9 +438,11 @@ class UploadOnSteroids extends FormFileUpload
     /**
      * Add the files from the value.
      *
+     * @param string $sortBy The file sorting
+     *
      * @return void
      */
-    private function addFiles(): void
+    private function addFiles($sortBy)
     {
         if (empty($this->value)) {
             $this->files = null;
@@ -451,10 +455,30 @@ class UploadOnSteroids extends FormFileUpload
         $platform = $connection->getDatabasePlatform();
 
         $builder = $connection->createQueryBuilder();
+
+        switch ($sortBy) {
+            case 'name_desc':
+                $builder->orderBy('name', 'DESC');
+                break;
+            case 'date_asc':
+                $builder->orderBy('tstamp', 'ASC');
+                break;
+            case 'date_desc':
+                $builder->orderBy('tstamp', 'DESC');
+                break;
+            case 'random':
+                $builder->orderBy('RAND()');
+                break;
+            default:
+            case 'name_asc':
+                $builder->orderBy('name', 'ASC');
+        }
+
         $builder
             ->select(
                 $platform->quoteIdentifier('id'),
                 $platform->quoteIdentifier('pid'),
+                $platform->quoteIdentifier('tstamp'),
                 $platform->quoteIdentifier('uuid'),
                 $platform->quoteIdentifier('type'),
                 $platform->quoteIdentifier('path'),
