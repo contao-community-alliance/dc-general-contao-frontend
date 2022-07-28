@@ -21,9 +21,11 @@
 
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Widgets;
 
+use Contao\Controller;
 use Contao\CoreBundle\Slug\Slug as SlugGenerator;
 use Contao\CoreBundle\Framework\Adapter;
 use Contao\Dbafs;
+use Contao\File;
 use Contao\FilesModel;
 use Contao\FormFileUpload;
 use Contao\Input;
@@ -55,6 +57,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * @property array   files
  * @property boolean showThumbnail
  * @property boolean multiple
+ * @property string  sortBy
  */
 class UploadOnSteroids extends FormFileUpload
 {
@@ -73,11 +76,18 @@ class UploadOnSteroids extends FormFileUpload
     protected $strTemplate = 'form_upload-on-steroids';
 
     /**
-     * Template
+     * CSS classes
      *
      * @var string
      */
     protected $strPrefix = 'widget widget-upload widget-upload-on-steroids';
+
+    /**
+     * Image sizes
+     *
+     * @var array
+     */
+    protected $imageSize;
 
     /**
      * The translator
@@ -158,6 +168,7 @@ class UploadOnSteroids extends FormFileUpload
         $this->addIsDeselectable();
         $this->addIsMultiple();
         $this->addShowThumbnail();
+        $this->getImageSize();
         $this->addFiles($this->sortBy);
 
         $this->value = \implode(',', \array_map('\Contao\StringUtil::binToUuid', (array) $this->value));
@@ -501,7 +512,31 @@ class UploadOnSteroids extends FormFileUpload
             return;
         }
 
-        $this->files = $statement->fetchAll(\PDO::FETCH_OBJ);
+        if (!$this->showThumbnail) {
+            $this->files = $statement->fetchAllAssociative();
+        }
+
+        $fileList   = [];
+        $container  = System::getContainer();
+        $projectDir = $container->getParameter('kernel.project_dir');
+        foreach ($statement->fetchAllAssociative() as $key => $file) {
+            $objFile          = FilesModel::findByUuid($file['uuid']);
+            $dimensions       = '';
+            $src              = $container->get('contao.image.image_factory')
+                ->create($projectDir . '/' . rawurldecode($objFile->path), $this->imageSize)
+                ->getUrl($projectDir);
+            $objThumbnailFile = new File(rawurldecode($src));
+
+            $file['thumbnail'] = [
+                'src'    => StringUtil::specialcharsUrl(Controller::addFilesUrlTo($src)),
+                'width'  => $objThumbnailFile->imageSize[0],
+                'height' => $objThumbnailFile->imageSize[1]
+            ];
+
+            $fileList[] = $file;
+        }
+
+        $this->files = $fileList;
     }
 
     /**
@@ -648,5 +683,10 @@ class UploadOnSteroids extends FormFileUpload
         }
 
         return $this->filesystem;
+    }
+
+    private function getImageSize(): void
+    {
+        $this->imageSize = StringUtil::deserialize($this->imageSize, true);
     }
 }
