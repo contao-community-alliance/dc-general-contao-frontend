@@ -51,6 +51,11 @@
     }
   },
   "config": {
+    "allow-plugins": {
+      "contao-components/installer": false,
+      "ocramius/package-versions": false,
+      "contao/manager-plugin": false
+    },
     "sort-packages": true
   }
 }
