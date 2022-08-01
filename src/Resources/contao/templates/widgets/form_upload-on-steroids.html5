@@ -5,8 +5,7 @@
 <?php if ($this->label): ?>
     <label for="ctrl_<?= $this->id ?>"<?php if ($this->class): ?> class="<?= $this->class ?>"<?php endif; ?>>
         <?php if ($this->mandatory): ?>
-            <span class="invisible"><?= $this->mandatoryField ?> </span><?= $this->label ?><span
-                class="mandatory">*</span>
+            <span class="invisible"><?= $this->mandatoryField ?> </span><?= $this->label ?><span class="mandatory">*</span>
         <?php else: ?>
             <?= $this->label ?>
         <?php endif; ?>
@@ -62,10 +61,10 @@
 <?php $this->endblock(); ?>
 
 <?php $this->block('field'); ?>
-<?php if ($this->hasErrors()): ?>
-    <p class="error"><?= $this->getErrorAsString() ?></p>
-<?php endif; ?>
-<input type="hidden" name="<?= $this->name ?><?= $this->multiple ? '[]' : '' ?>" value="<?= $this->value ?>">
-<input type="file" name="<?= $this->name ?><?= $this->multiple ? '[]' : '' ?>" id="ctrl_<?= $this->id ?>"
-       class="upload<?php if ($this->class): ?> <?= $this->class ?><?php endif; ?>"<?= $this->getAttributes() ?>>
+    <?php if ($this->hasErrors()): ?>
+        <p class="error"><?= $this->getErrorAsString() ?></p>
+    <?php endif; ?>
+    <input type="hidden" name="<?= $this->name ?><?= $this->multiple ? '[]' : '' ?>" value="<?= $this->value ?>">
+    <input type="file" name="<?= $this->name ?><?= $this->multiple ? '[]' : '' ?>" id="ctrl_<?= $this->id ?>"
+           class="upload<?php if ($this->class): ?> <?= $this->class ?><?php endif; ?>"<?= $this->getAttributes() ?>>
 <?php $this->endblock(); ?>
