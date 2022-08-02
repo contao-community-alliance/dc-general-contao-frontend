@@ -3,18 +3,19 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2016-2019 Contao Community Alliance.
+ * (c) 2016-2022 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
  * This project is provided in good faith and hope to be usable by anyone.
  *
- * @package    contao-community-alliance/dc-general-contao-frontend
- * @author     Sven Baumann <baumann.sv@gmail.com>
- * @copyright  2016-2019 Contao Community Alliance.
- * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE
- *             LGPL-3.0-or-later
+ * @package   contao-community-alliance/dc-general-contao-frontend
+ * @author    Sven Baumann <baumann.sv@gmail.com>
+ * @author    Ingolf Steinhardt <info@e-spin.de>
+ * @copyright 2016-2022 Contao Community Alliance.
+ * @license   https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
+ *
  * @filesource
  */
 
@@ -39,7 +40,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  *  - Can add a default image
  *  - Can add a default image
  *  - Output the Image as Thumbnail
- *  - Normalize the extend folder (StringUtil::generateAlias)
+ *  - Normalize the extent folder (StringUtil::generateAlias)
  *  - Can prefix and postfix the filename.
  *
  * @property boolean deselect
@@ -56,35 +57,35 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 class UploadOnSteroids extends FormFileUpload
 {
     /**
-     * Submit indicator
+     * The submit indicator.
      *
      * @var boolean
      */
     protected $blnSubmitInput = true;
 
     /**
-     * Template
+     * The template.
      *
      * @var string
      */
     protected $strTemplate = 'form_upload-on-steroids';
 
     /**
-     * Template
+     * The template.
      *
      * @var string
      */
     protected $strPrefix = 'widget widget-upload widget-upload-on-steroids';
 
     /**
-     * The translator
+     * The translator.
      *
      * @var TranslatorInterface
      */
     protected $translator;
 
     /**
-     * The input provider;
+     * The input provider.
      *
      * @var Adapter|Input
      */
@@ -110,10 +111,19 @@ class UploadOnSteroids extends FormFileUpload
      */
     private $stringUtil;
 
-    public function __construct($attributes = null)
-    {
-        parent::__construct($attributes);
-    }
+    /**
+     * The value.
+     *
+     * @var string
+     */
+    private string $value;
+
+    /**
+     * The upload folder.
+     *
+     * @var string.
+     */
+    private string $uploadFolder;
 
     /**
      * {@inheritDoc}
@@ -214,6 +224,8 @@ class UploadOnSteroids extends FormFileUpload
      * Validate single upload widget.
      *
      * @return void
+     *
+     * @SuppressWarnings(PHPMD.Superglobals)
      */
     private function validateSingleUpload(): void
     {
@@ -221,7 +233,7 @@ class UploadOnSteroids extends FormFileUpload
             return;
         }
 
-        $inputName = $this->name;
+        $inputName                  = $this->name;
         $_FILES[$inputName]['name'] = $this->parseFilename($_FILES[$inputName]['name']);
 
         parent::validate();
@@ -242,6 +254,8 @@ class UploadOnSteroids extends FormFileUpload
      * Validate multiple upload widget.
      *
      * @return void
+     *
+     * @SuppressWarnings(PHPMD.Superglobals)
      */
     private function validateMultipleUpload(): void
     {
@@ -288,6 +302,8 @@ class UploadOnSteroids extends FormFileUpload
      * Get the multiple uploaded files.
      *
      * @return array
+     *
+     * @SuppressWarnings(PHPMD.Superglobals)
      */
     private function getMultipleUploadedFiles(): array
     {
@@ -340,6 +356,8 @@ class UploadOnSteroids extends FormFileUpload
      * @param string $inputName The input nanme.
      *
      * @return void
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     private function deleteFile(string $inputName)
     {
@@ -413,7 +431,7 @@ class UploadOnSteroids extends FormFileUpload
     /**
      * Prefix or postfix the filename.
      *
-     * @param string $filename The filename
+     * @param string $filename The filename.
      *
      * @return string
      */
@@ -489,10 +507,10 @@ class UploadOnSteroids extends FormFileUpload
     /**
      * Translate.
      *
-     * @param string      $transId    The message id (may also be an object that can be cast to string)
-     * @param array       $parameters An array of parameters for the message
-     * @param string|null $domain     The domain for the message or null to use the default
-     * @param string|null $locale     The locale or null to use the default
+     * @param string      $transId    The message id (may also be an object that can be cast to string).
+     * @param array       $parameters An array of parameters for the message.
+     * @param string|null $domain     The domain for the message or null to use the default.
+     * @param string|null $locale     The locale or null to use the default.
      *
      * @return string
      */

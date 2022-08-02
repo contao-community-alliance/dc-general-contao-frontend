@@ -12,7 +12,7 @@
  *
  * @package    contao-community-alliance/dc-general-contao-frontend
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
- * @author     Ingolf Steinhardt <git@e-spin.de>
+ * @author     Ingolf Steinhardt <info@e-spin.de>
  * @copyright  2015-2022 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
@@ -102,6 +102,7 @@ class DeleteHandler
      *
      * @throws RedirectResponseException After successful delete.
      * @throws NotDeletableException     When the DataContainer is not deletable.
+     * @throws PageNotFoundException     When model not found.
      */
     public function process(EnvironmentInterface $environment): void
     {
