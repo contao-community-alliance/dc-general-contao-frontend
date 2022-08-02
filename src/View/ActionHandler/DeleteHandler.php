@@ -102,6 +102,7 @@ class DeleteHandler
      *
      * @throws RedirectResponseException After successful delete.
      * @throws NotDeletableException     When the DataContainer is not deletable.
+     * @throws PageNotFoundException     When model not found.
      */
     public function process(EnvironmentInterface $environment): void
     {

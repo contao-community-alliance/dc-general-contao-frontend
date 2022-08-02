@@ -10,12 +10,12 @@
  *
  * This project is provided in good faith and hope to be usable by anyone.
  *
- * @package    contao-community-alliance/dc-general-contao-frontend
- * @author     Sven Baumann <baumann.sv@gmail.com>
- * @author     Ingolf Steinhardt <info@e-spin.de>
- * @copyright  2016-2022 Contao Community Alliance.
- * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE
- *             LGPL-3.0-or-later
+ * @package   contao-community-alliance/dc-general-contao-frontend
+ * @author    Sven Baumann <baumann.sv@gmail.com>
+ * @author    Ingolf Steinhardt <info@e-spin.de>
+ * @copyright 2016-2022 Contao Community Alliance.
+ * @license   https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
+ *
  * @filesource
  */
 
@@ -58,46 +58,48 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * @property boolean showThumbnail
  * @property boolean multiple
  * @property string  sortBy
+ *
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 class UploadOnSteroids extends FormFileUpload
 {
     /**
-     * Submit indicator
+     * The submit indicator.
      *
      * @var boolean
      */
     protected $blnSubmitInput = true;
 
     /**
-     * Template
+     * The template.
      *
      * @var string
      */
     protected $strTemplate = 'form_upload-on-steroids';
 
     /**
-     * CSS classes
+     * CSS classes.
      *
      * @var string
      */
     protected $strPrefix = 'widget widget-upload widget-upload-on-steroids';
 
     /**
-     * Image sizes
+     * Image sizes.
      *
      * @var array
      */
     protected $imageSize;
 
     /**
-     * The translator
+     * The translator.
      *
      * @var TranslatorInterface
      */
     protected TranslatorInterface $translator;
 
     /**
-     * The input provider;
+     * The input provider.
      *
      * @var Adapter|Input
      */
@@ -123,11 +125,6 @@ class UploadOnSteroids extends FormFileUpload
      * @var SlugGenerator
      */
     private $slugGenerator;
-
-    public function __construct($attributes = null)
-    {
-        parent::__construct($attributes);
-    }
 
     /**
      * {@inheritDoc}
@@ -231,6 +228,8 @@ class UploadOnSteroids extends FormFileUpload
      * Validate single upload widget.
      *
      * @return void
+     *
+     * @SuppressWarnings(PHPMD.Superglobals)
      */
     private function validateSingleUpload(): void
     {
@@ -259,6 +258,8 @@ class UploadOnSteroids extends FormFileUpload
      * Validate multiple upload widget.
      *
      * @return void
+     *
+     * @SuppressWarnings(PHPMD.Superglobals)
      */
     private function validateMultipleUpload(): void
     {
@@ -305,6 +306,8 @@ class UploadOnSteroids extends FormFileUpload
      * Get the multiple uploaded files.
      *
      * @return array
+     *
+     * @SuppressWarnings(PHPMD.Superglobals)
      */
     private function getMultipleUploadedFiles(): array
     {
@@ -357,6 +360,8 @@ class UploadOnSteroids extends FormFileUpload
      * @param string $inputName The input name.
      *
      * @return void
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     private function deleteFile(string $inputName)
     {
@@ -426,7 +431,7 @@ class UploadOnSteroids extends FormFileUpload
     /**
      * Prefix or postfix the filename.
      *
-     * @param string $filename The filename
+     * @param string $filename The filename.
      *
      * @return string
      */
@@ -449,9 +454,11 @@ class UploadOnSteroids extends FormFileUpload
     /**
      * Add the files from the value.
      *
-     * @param string $sortBy The file sorting
+     * @param string $sortBy The file sorting.
      *
      * @return void
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     private function addFiles($sortBy)
     {
@@ -519,9 +526,8 @@ class UploadOnSteroids extends FormFileUpload
         $fileList   = [];
         $container  = System::getContainer();
         $projectDir = $container->getParameter('kernel.project_dir');
-        foreach ($statement->fetchAllAssociative() as $key => $file) {
+        foreach ($statement->fetchAllAssociative() as $file) {
             $objFile          = FilesModel::findByUuid($file['uuid']);
-            $dimensions       = '';
             $src              = $container->get('contao.image.image_factory')
                 ->create($projectDir . '/' . rawurldecode($objFile->path), $this->imageSize)
                 ->getUrl($projectDir);
@@ -542,10 +548,10 @@ class UploadOnSteroids extends FormFileUpload
     /**
      * Translate.
      *
-     * @param string      $transId    The message id (may also be an object that can be cast to string)
-     * @param array       $parameters An array of parameters for the message
-     * @param string|null $domain     The domain for the message or null to use the default
-     * @param string|null $locale     The locale or null to use the default
+     * @param string      $transId    The message id (may also be an object that can be cast to string).
+     * @param array       $parameters An array of parameters for the message.
+     * @param string|null $domain     The domain for the message or null to use the default.
+     * @param string|null $locale     The locale or null to use the default.
      *
      * @return string
      */
@@ -667,7 +673,6 @@ class UploadOnSteroids extends FormFileUpload
      */
     protected function getSlugOptions(): array
     {
-        // TODO: make configurable.
         return ['locale' => 'de', 'validChars' => '0-9a-z_-'];
     }
 
@@ -685,6 +690,11 @@ class UploadOnSteroids extends FormFileUpload
         return $this->filesystem;
     }
 
+    /**
+     * Get the image sizes.
+     *
+     * @return void
+     */
     private function getImageSize(): void
     {
         $this->imageSize = StringUtil::deserialize($this->imageSize, true);

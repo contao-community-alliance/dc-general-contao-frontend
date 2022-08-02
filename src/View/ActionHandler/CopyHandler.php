@@ -105,6 +105,7 @@ class CopyHandler
      *
      * @throws RedirectResponseException To redirect to the edit mask with cloned model.
      * @throws NotCreatableException     When the DataContainer is not creatable.
+     * @throws PageNotFoundException     When model not found.
      */
     public function process(EnvironmentInterface $environment): void
     {
