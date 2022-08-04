@@ -196,7 +196,7 @@ class UploadOnSteroids extends FormFileUpload
     {
         $inputName = $this->name;
 
-        if ($this->normalizeExtendFolder) {
+        if ($this->normalizeExtendFolder && $this->extendFolder) {
             $this->extendFolder = $this->slugGenerator()->generate($this->extendFolder, $this->getSlugOptions());
         }
 
