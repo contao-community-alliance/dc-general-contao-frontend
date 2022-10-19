@@ -289,7 +289,6 @@ class EditMask
      * 3. Return the input value as nothing worked out.
      *
      * @param string $transString The non translated label for the button.
-     *
      * @param array  $parameters  The parameters to pass to the translator.
      *
      * @return string
@@ -302,7 +301,8 @@ class EditMask
             return $label;
         }
 
-        if ($transString !== ($label = $translator->translate('MSC.'.$transString, $parameters))
+        if ($transString !== ($label =
+                $translator->translate('MSC.'.$transString, $this->definition->getName(), $parameters))
         ) {
             return $label;
         }
