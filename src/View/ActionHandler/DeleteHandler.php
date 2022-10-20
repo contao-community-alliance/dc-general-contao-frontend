@@ -124,13 +124,13 @@ class DeleteHandler
 
         // Trigger event before the model will be deleted.
         $event = new PreDeleteModelEvent($environment, $model);
-        $environment->getEventDispatcher()->dispatch($event::NAME, $event);
+        $environment->getEventDispatcher()->dispatch($event, $event::NAME);
 
         $dataProvider->delete($model);
 
         // Trigger event after the model is deleted.
         $event = new PostDeleteModelEvent($environment, $model);
-        $environment->getEventDispatcher()->dispatch($event::NAME, $event);
+        $environment->getEventDispatcher()->dispatch($event, $event::NAME);
 
         throw new RedirectResponseException($this->requestStack->getCurrentRequest()->headers->get('referer'));
     }
