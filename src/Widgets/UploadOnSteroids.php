@@ -464,6 +464,7 @@ class UploadOnSteroids extends FormFileUpload
     {
         if (empty($this->value)) {
             $this->files = null;
+
             return;
         }
 
@@ -521,6 +522,8 @@ class UploadOnSteroids extends FormFileUpload
 
         if (!$this->showThumbnail) {
             $this->files = $statement->fetchAllAssociative();
+
+            return;
         }
 
         $fileList   = [];
