@@ -462,9 +462,9 @@ class UploadOnSteroids extends FormFileUpload
      */
     private function addFiles($sortBy)
     {
-        if (empty($this->value)) {
-            $this->files = null;
+        $this->files = [];
 
+        if (empty($this->value)) {
             return;
         }
 
@@ -520,12 +520,14 @@ class UploadOnSteroids extends FormFileUpload
             return;
         }
 
+        // Generate simple file list.
         if (!$this->showThumbnail) {
             $this->files = $statement->fetchAllAssociative();
 
             return;
         }
 
+        // Generate file list with thumbnails.
         $fileList   = [];
         $container  = System::getContainer();
         $projectDir = $container->getParameter('kernel.project_dir');
