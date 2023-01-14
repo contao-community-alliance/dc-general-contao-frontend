@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015-2022 Contao Community Alliance.
+ * (c) 2015-2023 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,20 +15,21 @@
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
  * @author     Sven Baumann <baumann.sv@gmail.com>
  * @author     Ingolf Steinhardt <info@e-spin.de>
- * @copyright  2015-2022 Contao Community Alliance.
+ * @copyright  2015-2023 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
 
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View;
 
-use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\Event\GetEditModeButtonsEvent;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Event\DcGeneralFrontendEvents;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Event\HandleSubmitEvent;
-use ContaoCommunityAlliance\DcGeneral\Data\DataProviderInterface;
+use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\Event\GetEditMaskSubHeadlineEvent;
+use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\Event\GetEditModeButtonsEvent;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\ContainerInterface;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\Definition\PropertiesDefinitionInterface;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\Palette\PaletteInterface;
+use ContaoCommunityAlliance\DcGeneral\Data\DataProviderInterface;
 use ContaoCommunityAlliance\DcGeneral\Data\ModelInterface;
 use ContaoCommunityAlliance\DcGeneral\Data\PropertyValueBag;
 use ContaoCommunityAlliance\DcGeneral\DcGeneralEvents;
@@ -504,9 +505,16 @@ class EditMask
     private function getHeadline()
     {
         if ($this->model->getId()) {
-            return $this->translateLabel('editRecord', [$this->model->getId()]);
+            $subHeadline = $this->translateLabel('editRecord', [$this->model->getId()]);
         }
-        return $this->translateLabel('newRecord');
+        $subHeadline = $this->translateLabel('newRecord');
+
+        $event = new GetEditMaskSubHeadlineEvent($this->environment, $this->model);
+        $event->setHeadline($subHeadline);
+
+        $this->dispatcher->dispatch($event, $event::NAME);
+
+        return $event->getHeadline();
     }
 
     /**
