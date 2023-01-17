@@ -193,7 +193,7 @@ class EditMask
         $template->setData(
             [
                 'fieldsets'   => $fieldSets,
-                'subHeadline' => $this->getHeadline(),
+                'subHeadline' => $this->getSubHeadline(),
                 'table'       => $this->definition->getName(),
                 'enctype'     => 'multipart/form-data',
                 'error'       => $this->errors,
@@ -501,16 +501,26 @@ class EditMask
      * Determine the headline to use.
      *
      * @return string.
+     *
+     * @deprecated This is deprecated since 2.3 and will be removed in 3.0.
      */
-    private function getHeadline()
+    private function getHeadline(): string
     {
-        if ($this->model->getId()) {
-            $subHeadline = $this->translateLabel('editRecord', [$this->model->getId()]);
-        }
-        $subHeadline = $this->translateLabel('newRecord');
+        // @codingStandardsIgnoreStart
+        @\trigger_error(__CLASS__ . '::' . __METHOD__ . ' is deprecated - use getSubHeadline()!', E_USER_DEPRECATED);
+        // @codingStandardsIgnoreEnd
 
+        $this->getSubHeadline();
+    }
+
+    /**
+     * Determine the headline to use.
+     *
+     * @return string.
+     */
+    private function getSubHeadline(): string
+    {
         $event = new GetEditMaskSubHeadlineEvent($this->environment, $this->model);
-        $event->setHeadline($subHeadline);
 
         $this->dispatcher->dispatch($event, $event::NAME);
 
