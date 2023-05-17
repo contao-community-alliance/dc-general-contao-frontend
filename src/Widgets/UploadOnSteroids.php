@@ -131,23 +131,25 @@ class UploadOnSteroids extends FormFileUpload
      */
     public function __set($key, $value)
     {
-        if (\in_array(
-            $key,
-            [
-                'deselect',
-                'delete',
-                'extendFolder',
-                'normalizeExtendFolder',
-                'normalizeFilename',
-                'prefixFilename',
-                'postfixFilename',
-                'files',
-                'showThumbnail',
-                'multiple',
-                'imageSize',
-                'sortBy'
-            ]
-        )) {
+        if (
+            \in_array(
+                $key,
+                [
+                    'deselect',
+                    'delete',
+                    'extendFolder',
+                    'normalizeExtendFolder',
+                    'normalizeFilename',
+                    'prefixFilename',
+                    'postfixFilename',
+                    'files',
+                    'showThumbnail',
+                    'multiple',
+                    'imageSize',
+                    'sortBy'
+                ]
+            )
+        ) {
             $this->arrConfiguration[$key] = $value;
 
             return;
@@ -334,7 +336,8 @@ class UploadOnSteroids extends FormFileUpload
      */
     private function deselectFile(string $inputName)
     {
-        if (!$this->deselect
+        if (
+            !$this->deselect
             || $this->hasErrors()
             || !($post = $this->inputProvider()->post($inputName))
             || !isset($post['reset'][0])
@@ -365,7 +368,8 @@ class UploadOnSteroids extends FormFileUpload
      */
     private function deleteFile(string $inputName)
     {
-        if (!$this->delete
+        if (
+            !$this->delete
             || $this->hasErrors()
             || !($post = $this->inputProvider()->post($inputName))
             || !isset($post['delete'][0])

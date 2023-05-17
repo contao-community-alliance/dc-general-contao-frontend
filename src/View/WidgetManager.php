@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015-2022 Contao Community Alliance.
+ * (c) 2015-2023 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -14,7 +14,7 @@
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
  * @author     Ingolf Steinhardt <info@e-spin.de>
- * @copyright  2015-2022 Contao Community Alliance.
+ * @copyright  2015-2023 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
@@ -36,6 +36,8 @@ use ContaoCommunityAlliance\DcGeneral\Exception\DcGeneralRuntimeException;
  * Class WidgetManager.
  *
  * This class is responsible for creating widgets and processing data through them.
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class WidgetManager
 {
@@ -141,7 +143,8 @@ class WidgetManager
             $reflection->setAccessible(true);
             $reflection->setValue($widget, str_replace('error', '', $reflection->getValue($widget)));
         } else {
-            if ($valueBag && $valueBag->hasPropertyValue($property)
+            if (
+                $valueBag && $valueBag->hasPropertyValue($property)
                 && $valueBag->isPropertyValueInvalid($property)
             ) {
                 foreach ($valueBag->getPropertyValueErrors($property) as $error) {

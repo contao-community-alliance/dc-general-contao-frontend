@@ -47,6 +47,9 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
  * This class manages the displaying of the edit/create mask containing the widgets.
  *
  * It also handles the persisting of the model.
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
  */
 class EditMask
 {
@@ -297,13 +300,16 @@ class EditMask
     private function translateLabel($transString, $parameters = [])
     {
         $translator = $this->translator;
-        if ($transString !== ($label =
-                $translator->translate($transString, $this->definition->getName(), $parameters))) {
+        if (
+            $transString !== ($label =
+                $translator->translate($transString, $this->definition->getName(), $parameters))
+        ) {
             return $label;
         }
 
-        if ($transString !== ($label =
-                $translator->translate('MSC.'.$transString, $this->definition->getName(), $parameters))
+        if (
+            $transString !== ($label =
+                $translator->translate('MSC.' . $transString, $this->definition->getName(), $parameters))
         ) {
             return $label;
         }
@@ -392,7 +398,8 @@ class EditMask
                 $this->ensurePropertyExists($propertyName, $propertyDefinitions);
 
                 // If this property is invalid, fetch the error.
-                if ((!$isAutoSubmit)
+                if (
+                    (!$isAutoSubmit)
                     && $propertyValues
                     && $propertyValues->hasPropertyValue($propertyName)
                     && $propertyValues->isPropertyValueInvalid($propertyName)
@@ -461,7 +468,8 @@ class EditMask
         $dataProvider   = $environment->getDataProvider($this->model->getProviderName());
         $currentVersion = $dataProvider->getActiveVersion($modelId);
         // Compare version and current record.
-        if (!$currentVersion
+        if (
+            !$currentVersion
             || !$dataProvider->sameModels($model, $dataProvider->getVersion($modelId, $currentVersion))
         ) {
             $user     = \FrontendUser::getInstance();
