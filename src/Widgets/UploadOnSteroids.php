@@ -441,14 +441,14 @@ class UploadOnSteroids extends FormFileUpload
         // We save the default delimeter '-' at prefix and postfix
         // see https://github.com/ausi/slug-generator/issues/34.
         $prefix = $this->prefixFilename;
-        if ($this->normalizeFilename) {
+        if ($this->prefixFilename && $this->normalizeFilename) {
             $prefix = \str_repeat('-', \strspn($this->prefixFilename, '-')) .
                 $this->slugGenerator()->generate($this->prefixFilename, $this->getSlugOptions()) .
                 \str_repeat('-', \strspn(\strrev($this->prefixFilename), '-'));
         }
 
         $postfix = $this->postfixFilename;
-        if ($this->normalizeFilename) {
+        if ($this->postfixFilename && $this->normalizeFilename) {
             $postfix = \str_repeat('-', \strspn($this->postfixFilename, '-')) .
                 $this->slugGenerator()->generate($this->postfixFilename, $this->getSlugOptions()) .
                 \str_repeat('-', \strspn(\strrev($this->postfixFilename), '-'));
