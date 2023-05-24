@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2016-2022 Contao Community Alliance.
+ * (c) 2016-2023 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -13,7 +13,7 @@
  * @package   contao-community-alliance/dc-general-contao-frontend
  * @author    Sven Baumann <baumann.sv@gmail.com>
  * @author    Ingolf Steinhardt <info@e-spin.de>
- * @copyright 2016-2022 Contao Community Alliance.
+ * @copyright 2016-2023 Contao Community Alliance.
  * @license   https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  *
  * @filesource
@@ -186,7 +186,7 @@ class UploadOnSteroids extends FormFileUpload
             return $filename;
         }
 
-        return $this->normalizeFilename($filename);
+        return $this->convertFilename($filename);
     }
 
     /**
@@ -405,27 +405,24 @@ class UploadOnSteroids extends FormFileUpload
     }
 
     /**
-     * Normalize the filename.
+     * Convert the filename.
      *
      * @param string $filename The filename.
      *
      * @return string
      */
-    private function normalizeFilename(string $filename): string
+    private function convertFilename(string $filename): string
     {
-        if (!$this->normalizeFilename) {
-            return $filename;
+        $fileInfo  = \pathinfo($filename);
+        $extension = $fileInfo['extension'];
+        $filename  = $fileInfo['filename'];
+
+        if ($this->normalizeFilename) {
+            $extension = $this->slugGenerator()->generate($extension, $this->getSlugOptions());
+            $filename  = $this->slugGenerator()->generate($filename, $this->getSlugOptions());
         }
 
-        $fileInfo = \pathinfo($filename);
-
-        $currentExtension   = $fileInfo['extension'];
-        $normalizeExtension = $this->slugGenerator()->generate($currentExtension, $this->getSlugOptions());
-
-        $currentFilename   = $fileInfo['filename'];
-        $normalizeFilename = $this->slugGenerator()->generate($currentFilename, $this->getSlugOptions());
-
-        return $this->preOrPostFixFilename($normalizeFilename) . '.' . $normalizeExtension;
+        return $this->preOrPostFixFilename($filename) . '.' . $extension;
     }
 
     /**
@@ -441,12 +438,21 @@ class UploadOnSteroids extends FormFileUpload
             return $filename;
         }
 
-        $prefix  = $this->prefixFilename
-            ? $this->slugGenerator()->generate($this->prefixFilename, $this->getSlugOptions())
-            : '';
-        $postfix = $this->postfixFilename
-            ? $this->slugGenerator()->generate($this->postfixFilename, $this->getSlugOptions())
-            : '';
+        // We save the default delimeter '-' at prefix and postfix
+        // see https://github.com/ausi/slug-generator/issues/34.
+        $prefix = $this->prefixFilename;
+        if ($this->normalizeFilename) {
+            $prefix = \str_repeat('-', \strspn($this->prefixFilename, '-')) .
+                $this->slugGenerator()->generate($this->prefixFilename, $this->getSlugOptions()) .
+                \str_repeat('-', \strspn(\strrev($this->prefixFilename), '-'));
+        }
+
+        $postfix = $this->postfixFilename;
+        if ($this->normalizeFilename) {
+            $postfix = \str_repeat('-', \strspn($this->postfixFilename, '-')) .
+                $this->slugGenerator()->generate($this->postfixFilename, $this->getSlugOptions()) .
+                \str_repeat('-', \strspn(\strrev($this->postfixFilename), '-'));
+        }
 
         return $prefix . $filename . $postfix;
     }
