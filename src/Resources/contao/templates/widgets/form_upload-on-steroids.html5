@@ -17,7 +17,7 @@
         <ul id="files_<?= $this->id ?>" class="files">
             <?php /** @var stdClass $file */ ?>
             <?php foreach ($this->files as $key => $file): ?>
-                <li class="file-element ext-<?= $file['extension'] ?>">
+                <li class="file-element<?php if (!$this->showThumbnail): ?> download-element ext-<?= $file['extension'] ?><?php endif ?>">
                     <?php if ($this->showThumbnail): ?>
                         <?= sprintf(
                             '<img src="%s" width="%s" height="%s" alt="%s" itemprop="image">',
@@ -26,7 +26,7 @@
                             $file['thumbnail']['height'],
                             $file['name']
                         ) ?>
-                        <p class="file-name"><?= $file['name'] ?></p>
+                        <br><span class="file-name"><?= $file['name'] ?></span>
                     <?php else: ?>
                         <span class="file-name"><?= $file['name'] ?></span>
                     <?php endif; ?>
