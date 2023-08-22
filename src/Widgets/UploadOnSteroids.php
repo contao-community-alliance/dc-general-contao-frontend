@@ -268,7 +268,7 @@ class UploadOnSteroids extends FormFileUpload
         }
 
         $inputName = $this->name;
-        $values    = \array_map('\Contao\StringUtil::binToUuid', $this->value);
+        $values    = \array_map('\Contao\StringUtil::binToUuid', (array) $this->value);
 
         $files      = [];
         $inputFiles = $this->getMultipleUploadedFiles();
