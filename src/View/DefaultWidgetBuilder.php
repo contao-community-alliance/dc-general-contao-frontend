@@ -30,8 +30,10 @@ use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\Event\GetPr
 use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\Event\ManipulateWidgetEvent;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Event\BuildWidgetEvent;
 use ContaoCommunityAlliance\DcGeneral\Data\ModelInterface;
+use ContaoCommunityAlliance\DcGeneral\DataDefinition\ContainerInterface;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\Definition\Properties\PropertyInterface;
 use ContaoCommunityAlliance\DcGeneral\EnvironmentInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Widget Builder to build Contao frontend widgets.
@@ -45,7 +47,7 @@ class DefaultWidgetBuilder
      *
      * @var RequestScopeDeterminator
      */
-    private $scopeDeterminator;
+    private RequestScopeDeterminator $scopeDeterminator;
 
     /**
      * DefaultWidgetBuilder constructor.
@@ -80,9 +82,7 @@ class DefaultWidgetBuilder
      * Build a widget for a given property.
      *
      * @param EnvironmentInterface $environment The environment.
-     *
      * @param PropertyInterface    $property    The property.
-     *
      * @param ModelInterface       $model       The current model.
      *
      * @return \Widget
@@ -95,11 +95,17 @@ class DefaultWidgetBuilder
         PropertyInterface $property,
         ModelInterface $model
     ) {
-        $dispatcher   = $environment->getEventDispatcher();
+        $dispatcher = $environment->getEventDispatcher();
+        assert($dispatcher instanceof EventDispatcherInterface);
+
         $propertyName = $property->getName();
         $propExtra    = $property->getExtra();
-        $defName      = $environment->getDataDefinition()->getName();
-        $strClass     = $this->getWidgetClass($property);
+
+        $dataDefinition = $environment->getDataDefinition();
+        assert($dataDefinition instanceof ContainerInterface);
+
+        $defName  = $dataDefinition->getName();
+        $strClass = $this->getWidgetClass($property);
 
         if (null === $strClass) {
             return null;
@@ -198,7 +204,7 @@ class DefaultWidgetBuilder
      *
      * @param PropertyInterface $property The property to get the widget class name for.
      *
-     * @return string
+     * @return string|null
      *
      * @SuppressWarnings(PHPMD.Superglobals)
      * @SuppressWarnings(PHPMD.CamelCaseVariableName)
@@ -209,7 +215,7 @@ class DefaultWidgetBuilder
             return null;
         }
 
-        $className = $GLOBALS['TL_FFL'][$property->getWidgetType()];
+        $className = (string) $GLOBALS['TL_FFL'][$property->getWidgetType()];
         if (!class_exists($className)) {
             return null;
         }
@@ -221,12 +227,10 @@ class DefaultWidgetBuilder
      * Get special labels.
      *
      * @param EnvironmentInterface $environment The environment.
-     *
      * @param PropertyInterface    $propInfo    The property for which the options shall be retrieved.
-     *
      * @param ModelInterface       $model       The model.
      *
-     * @return string[]
+     * @return string[]|null
      */
     private function getOptionsForWidget(
         EnvironmentInterface $environment,
@@ -234,8 +238,10 @@ class DefaultWidgetBuilder
         ModelInterface $model
     ) {
         $dispatcher = $environment->getEventDispatcher();
-        $options    = $propInfo->getOptions();
-        $event      = new GetPropertyOptionsEvent($environment, $model);
+        assert($dispatcher instanceof EventDispatcherInterface);
+
+        $options = $propInfo->getOptions();
+        $event   = new GetPropertyOptionsEvent($environment, $model);
         $event->setPropertyName($propInfo->getName());
         $event->setOptions($options);
         $dispatcher->dispatch($event, GetPropertyOptionsEvent::NAME);
@@ -258,7 +264,7 @@ class DefaultWidgetBuilder
      */
     private function addCssClass($classString, $class)
     {
-        if (null !== $classString) {
+        if ('' !== $classString) {
             $classString .= ' ' . $class;
         } else {
             $classString = $class;

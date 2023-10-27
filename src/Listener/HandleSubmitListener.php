@@ -26,6 +26,7 @@ use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminator;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Event\HandleSubmitEvent;
 use ContaoCommunityAlliance\DcGeneral\Data\ModelId;
 use ContaoCommunityAlliance\UrlBuilder\UrlBuilder;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
@@ -75,7 +76,10 @@ class HandleSubmitListener
             return;
         }
 
-        $currentUrl = $this->requestStack->getCurrentRequest()->getUri();
+        $currentRequest = $this->requestStack->getCurrentRequest();
+        assert($currentRequest instanceof Request);
+
+        $currentUrl = $currentRequest->getUri();
 
         switch ($event->getButtonName()) {
             case 'save':

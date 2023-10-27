@@ -13,6 +13,7 @@
     "Symfony\\Component\\DependencyInjection\\ContainerBuilder",
     "Symfony\\Component\\DependencyInjection\\Extension\\Extension",
     "Symfony\\Component\\DependencyInjection\\Loader\\YamlFileLoader",
+    "Symfony\\Component\\HttpFoundation\\Request",
     "Symfony\\Component\\HttpFoundation\\RequestStack",
     "Symfony\\Component\\HttpKernel\\Bundle\\Bundle",
     "Symfony\\Contracts\\Translation\\TranslatorInterface"

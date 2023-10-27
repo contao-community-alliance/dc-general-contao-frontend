@@ -40,6 +40,7 @@ use ContaoCommunityAlliance\DcGeneral\Event\PreEditModelEvent;
 use ContaoCommunityAlliance\DcGeneral\Event\PrePersistModelEvent;
 use ContaoCommunityAlliance\DcGeneral\Exception\DcGeneralInvalidArgumentException;
 use ContaoCommunityAlliance\DcGeneral\Exception\DcGeneralRuntimeException;
+use ContaoCommunityAlliance\DcGeneral\InputProviderInterface;
 use ContaoCommunityAlliance\Translator\TranslatorInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
@@ -58,49 +59,49 @@ class EditMask
      *
      * @var EnvironmentInterface
      */
-    private $environment;
+    private EnvironmentInterface $environment;
 
     /**
      * The event dispatcher.
      *
      * @var EventDispatcherInterface
      */
-    private $dispatcher;
+    private EventDispatcherInterface $dispatcher;
 
     /**
      * Retrieve the translation manager to use.
      *
      * @var TranslatorInterface
      */
-    private $translator;
+    private TranslatorInterface $translator;
 
     /**
      * The data definition from the environment.
      *
      * @var ContainerInterface
      */
-    private $definition;
+    private ContainerInterface $definition;
 
     /**
      * The data provider of the model being edited.
      *
      * @var DataProviderInterface
      */
-    private $modelProvider;
+    private DataProviderInterface $modelProvider;
 
     /**
      * The model to be manipulated.
      *
      * @var ModelInterface
      */
-    private $model;
+    private ModelInterface $model;
 
     /**
      * The original model from the database.
      *
      * @var ModelInterface
      */
-    private $originalModel;
+    private ModelInterface $originalModel;
 
     /**
      * The method to be executed before the model is persisted.
@@ -121,20 +122,16 @@ class EditMask
      *
      * @var array
      */
-    private $errors = [];
+    private array $errors = [];
 
     /**
      * Create the edit mask.
      *
      * @param EnvironmentInterface $environment   The view in use.
-     *
      * @param ModelInterface       $model         The model with the current data.
-     *
      * @param ModelInterface       $originalModel The data from the original data.
-     *
-     * @param callable             $preFunction   The function to call before saving an item.
-     *
-     * @param callable             $postFunction  The function to call after saving an item.
+     * @param callable|null        $preFunction   The function to call before saving an item.
+     * @param callable|null        $postFunction  The function to call after saving an item.
      */
     public function __construct($environment, $model, $originalModel, $preFunction, $postFunction)
     {
@@ -161,7 +158,9 @@ class EditMask
      */
     public function execute()
     {
-        $inputProvider      = $this->environment->getInputProvider();
+        $inputProvider = $this->environment->getInputProvider();
+        assert($inputProvider instanceof InputProviderInterface);
+
         $palettesDefinition = $this->definition->getPalettesDefinition();
         $isSubmitted        = ($inputProvider->getValue('FORM_SUBMIT') === $this->definition->getName());
         $isAutoSubmit       = ($inputProvider->getValue('SUBMIT_TYPE') === 'auto');
@@ -180,7 +179,9 @@ class EditMask
             $palette = $palettesDefinition->findPalette($this->model, $propertyValues);
 
             // Update the model - the model might add some more errors to the propertyValueBag via exceptions.
-            $this->environment->getController()->updateModelFromPropertyBag($this->model, $propertyValues);
+            $controller = $this->environment->getController();
+            assert($controller instanceof ContainerInterface);
+            $controller->updateModelFromPropertyBag($this->model, $propertyValues);
         }
 
         $fieldSets = $this->buildFieldSet($widgetManager, $palette, $propertyValues);
@@ -213,7 +214,7 @@ class EditMask
      *
      * @return void
      */
-    private function enforceModelRelationship()
+    private function enforceModelRelationship(): void
     {
         $event = new EnforceModelRelationshipEvent($this->environment, $this->model);
 
@@ -227,9 +228,10 @@ class EditMask
      *
      * @return null|PropertyValueBag
      */
-    private function processInput($widgetManager)
+    private function processInput($widgetManager): ?PropertyValueBag
     {
         $input = $this->environment->getInputProvider();
+        assert($input instanceof InputProviderInterface);
 
         if ($input->getValue('FORM_SUBMIT') === $this->definition->getName()) {
             $propertyValues = new PropertyValueBag();
@@ -257,7 +259,7 @@ class EditMask
      *
      * @return void
      */
-    private function handlePrePersist()
+    private function handlePrePersist(): void
     {
         if (null !== $this->preFunction) {
             \call_user_func($this->preFunction, $this->environment, $this->model, $this->originalModel);
@@ -274,7 +276,7 @@ class EditMask
      *
      * @return void
      */
-    private function handlePostPersist()
+    private function handlePostPersist(): void
     {
         if (null !== $this->postFunction) {
             \call_user_func($this->postFunction, $this->environment, $this->model, $this->originalModel);
@@ -297,7 +299,7 @@ class EditMask
      *
      * @return string
      */
-    private function translateLabel($transString, $parameters = [])
+    private function translateLabel(string $transString, array $parameters = []): string
     {
         $translator = $this->translator;
         if (
@@ -323,7 +325,7 @@ class EditMask
      *
      * @return string[]
      */
-    private function getEditButtons()
+    private function getEditButtons(): array
     {
         $button  = '<button type="submit" name="%s" id="%s" class="submit %s" accesskey="%s">%s</button>';
         $buttons = [];
@@ -360,9 +362,7 @@ class EditMask
      * Build the field sets.
      *
      * @param WidgetManager    $widgetManager  The widget manager in use.
-     *
      * @param PaletteInterface $palette        The palette to use.
-     *
      * @param PropertyValueBag $propertyValues The property values.
      *
      * @return array
@@ -372,10 +372,17 @@ class EditMask
      *
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
-    private function buildFieldSet($widgetManager, $palette, $propertyValues)
-    {
+    private function buildFieldSet(
+        WidgetManager $widgetManager,
+        PaletteInterface $palette,
+        PropertyValueBag $propertyValues
+    ): array {
         $propertyDefinitions = $this->definition->getPropertiesDefinition();
-        $isAutoSubmit        = ($this->environment->getInputProvider()->getValue('SUBMIT_TYPE') === 'auto');
+
+        $inputProvider = $this->environment->getInputProvider();
+        assert($inputProvider instanceof InputProviderInterface);
+
+        $isAutoSubmit = ($inputProvider->getValue('SUBMIT_TYPE') === 'auto');
 
         $fieldSets = [];
         $errors    = [];
@@ -408,12 +415,12 @@ class EditMask
                 }
 
                 $fields[] = $widgetManager->renderWidget($propertyName, $isAutoSubmit, $propertyValues);
-                $hidden[] = sprintf('<input type="hidden" name="FORM_INPUTS[]" value="%s">', $propertyName);
+                $hidden[] = \sprintf('<input type="hidden" name="FORM_INPUTS[]" value="%s">', $propertyName);
             }
 
             $fieldSet['label']   = $legendName;
             $fieldSet['class']   = $first ? 'tl_tbox' : 'tl_box';
-            $fieldSet['palette'] = implode('', $hidden) . implode('', $fields);
+            $fieldSet['palette'] = \implode('', $hidden) . \implode('', $fields);
             $fieldSet['legend']  = $legend->getName();
             $fieldSets[]         = $fieldSet;
 
@@ -431,18 +438,17 @@ class EditMask
      * Ensure a property is defined in the data definition and raise an exception if it is unknown.
      *
      * @param string                        $property            The property name to check.
-     *
      * @param PropertiesDefinitionInterface $propertyDefinitions The property definitions.
      *
      * @return void
      *
      * @throws DcGeneralInvalidArgumentException When the property is not registered in the definition.
      */
-    private function ensurePropertyExists($property, $propertyDefinitions)
+    private function ensurePropertyExists(string $property, PropertiesDefinitionInterface $propertyDefinitions): void
     {
         if (!$propertyDefinitions->hasProperty($property)) {
             throw new DcGeneralInvalidArgumentException(
-                sprintf(
+                \sprintf(
                     'Property %s is mentioned in palette but not defined in propertyDefinition.',
                     $property
                 )
@@ -457,7 +463,7 @@ class EditMask
      *
      * @return void
      */
-    private function storeVersion(ModelInterface $model)
+    private function storeVersion(ModelInterface $model): void
     {
         if (!$this->modelProvider->isVersioningEnabled()) {
             return;
@@ -466,6 +472,8 @@ class EditMask
         $environment    = $this->environment;
         $modelId        = $model->getId();
         $dataProvider   = $environment->getDataProvider($this->model->getProviderName());
+        assert($dataProvider instanceof DataProviderInterface);
+
         $currentVersion = $dataProvider->getActiveVersion($modelId);
         // Compare version and current record.
         if (
@@ -474,6 +482,8 @@ class EditMask
         ) {
             $user     = \FrontendUser::getInstance();
             $username = '(frontend anonymous)';
+
+            /** @psalm-suppress DeprecatedMethod */
             if ($user->authenticate()) {
                 $username = $user->username;
             }
@@ -491,10 +501,12 @@ class EditMask
      *
      * @return void
      */
-    private function handleSubmit($buttons)
+    private function handleSubmit(array $buttons): void
     {
         $inputProvider = $this->environment->getInputProvider();
-        foreach (array_keys($buttons) as $button) {
+        assert($inputProvider instanceof InputProviderInterface);
+
+        foreach (\array_keys($buttons) as $button) {
             if ($inputProvider->hasValue($button)) {
                 $event = new HandleSubmitEvent($this->environment, $this->model, $button);
 
@@ -508,25 +520,25 @@ class EditMask
     /**
      * Determine the headline to use.
      *
-     * @return string.
+     * @return string|null
      *
      * @deprecated This is deprecated since 2.3 and will be removed in 3.0.
      */
-    private function getHeadline(): string
+    private function getHeadline(): ?string
     {
         // @codingStandardsIgnoreStart
         @\trigger_error(__CLASS__ . '::' . __METHOD__ . ' is deprecated - use getSubHeadline()!', E_USER_DEPRECATED);
         // @codingStandardsIgnoreEnd
 
-        $this->getSubHeadline();
+        return $this->getSubHeadline();
     }
 
     /**
      * Determine the headline to use.
      *
-     * @return string.
+     * @return string|null
      */
-    private function getSubHeadline(): string
+    private function getSubHeadline(): ?string
     {
         $event = new GetEditMaskSubHeadlineEvent($this->environment, $this->model);
 
@@ -548,9 +560,10 @@ class EditMask
 
         $this->handlePrePersist();
 
-        // TO DO: manual sorting property handling is not enabled here as it originates from the backend defininiton.
+        // TO DO: manual sorting property handling is not enabled here as it originates from the backend definition.
         // Save the model.
         $dataProvider = $this->environment->getDataProvider($this->model->getProviderName());
+        assert($dataProvider instanceof DataProviderInterface);
 
         $dataProvider->save($this->model);
 

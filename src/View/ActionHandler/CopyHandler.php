@@ -24,7 +24,10 @@ use Contao\CoreBundle\Exception\PageNotFoundException;
 use Contao\CoreBundle\Exception\RedirectResponseException;
 use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminator;
 use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminatorAwareTrait;
+use ContaoCommunityAlliance\DcGeneral\Controller\ControllerInterface;
+use ContaoCommunityAlliance\DcGeneral\Data\DataProviderInterface;
 use ContaoCommunityAlliance\DcGeneral\Data\ModelId;
+use ContaoCommunityAlliance\DcGeneral\DataDefinition\ContainerInterface;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\Definition\BasicDefinitionInterface;
 use ContaoCommunityAlliance\DcGeneral\EnvironmentInterface;
 use ContaoCommunityAlliance\DcGeneral\Event\ActionEvent;
@@ -32,8 +35,11 @@ use ContaoCommunityAlliance\DcGeneral\Event\PostDuplicateModelEvent;
 use ContaoCommunityAlliance\DcGeneral\Event\PreDuplicateModelEvent;
 use ContaoCommunityAlliance\DcGeneral\Exception\DcGeneralRuntimeException;
 use ContaoCommunityAlliance\DcGeneral\Exception\NotCreatableException;
+use ContaoCommunityAlliance\DcGeneral\InputProviderInterface;
 use ContaoCommunityAlliance\UrlBuilder\UrlBuilder;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
  * This class handles the copy actions in the frontend.
@@ -49,13 +55,12 @@ class CopyHandler
      *
      * @var RequestStack
      */
-    private $requestStack;
+    private RequestStack $requestStack;
 
     /**
      * CopyHandler constructor.
      *
      * @param RequestScopeDeterminator $scopeDeterminator The request mode determinator.
-     *
      * @param RequestStack             $requestStack      The current request stack.
      */
     public function __construct(RequestScopeDeterminator $scopeDeterminator, RequestStack $requestStack)
@@ -77,7 +82,10 @@ class CopyHandler
      */
     public function handleEvent(ActionEvent $event): void
     {
-        if (!$this->scopeDeterminator->currentScopeIsFrontend()) {
+        if (
+            null === ($scopeDeterminator = $this->scopeDeterminator)
+            || !$scopeDeterminator->currentScopeIsFrontend()
+        ) {
             return;
         }
 
@@ -91,7 +99,7 @@ class CopyHandler
         }
 
         // Only run when no response given yet.
-        if (null !== $event->getResponse()) {
+        if ('' !== $event->getResponse()) {
             return;
         }
 
@@ -111,28 +119,46 @@ class CopyHandler
      */
     public function process(EnvironmentInterface $environment): void
     {
-        $dispatcher      = $environment->getEventDispatcher();
-        $definition      = $environment->getDataDefinition();
+        $dispatcher = $environment->getEventDispatcher();
+        assert($dispatcher instanceof EventDispatcherInterface);
+
+        $definition = $environment->getDataDefinition();
+        assert($definition instanceof ContainerInterface);
+
         $basicDefinition = $definition->getBasicDefinition();
-        $currentUrl      = $this->requestStack->getCurrentRequest()->getUri();
+
+        $currentRequest = $this->requestStack->getCurrentRequest() ;
+        assert($currentRequest instanceof Request);
+
+        $currentUrl = $currentRequest->getUri();
 
         if (!$basicDefinition->isCreatable()) {
             throw new NotCreatableException('DataContainer ' . $definition->getName() . ' is not creatable');
         }
+
         // We only support flat tables, sorry.
         if (BasicDefinitionInterface::MODE_HIERARCHICAL === $basicDefinition->getMode()) {
             return;
         }
-        $modelId = ModelId::fromSerialized($environment->getInputProvider()->getParameter('source'));
+
+        $inputProvider = $environment->getInputProvider();
+        assert($inputProvider instanceof InputProviderInterface);
+
+        $modelId = ModelId::fromSerialized((string) $inputProvider->getParameter('source'));
 
         $dataProvider = $environment->getDataProvider();
-        $model        = $dataProvider->fetch($dataProvider->getEmptyConfig()->setId($modelId->getId()));
+        assert($dataProvider instanceof DataProviderInterface);
+
+        $model = $dataProvider->fetch($dataProvider->getEmptyConfig()->setId($modelId->getId()));
 
         if (null === $model) {
             throw new PageNotFoundException('Model not found: ' . $modelId->getSerialized());
         }
 
-        $copyModel = $environment->getController()->createClonedModel($model);
+        $controller = $environment->getController();
+        assert($controller instanceof ControllerInterface);
+
+        $copyModel = $controller->createClonedModel($model);
 
         // Dispatch pre duplicate event.
         $copyEvent = new PreDuplicateModelEvent($environment, $copyModel, $model);
@@ -140,6 +166,8 @@ class CopyHandler
 
         // Save the copy.
         $provider = $environment->getDataProvider($copyModel->getProviderName());
+        assert($provider instanceof DataProviderInterface);
+
         $provider->save($copyModel);
 
         // Dispatch post duplicate event.

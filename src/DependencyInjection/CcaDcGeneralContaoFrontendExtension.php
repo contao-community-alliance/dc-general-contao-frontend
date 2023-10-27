@@ -33,7 +33,7 @@ class CcaDcGeneralContaoFrontendExtension extends Extension
     /**
      * The files to load.
      *
-     * @var array
+     * @var string[]
      */
     private static $files = [
         'listeners.yml',
@@ -43,7 +43,7 @@ class CcaDcGeneralContaoFrontendExtension extends Extension
     /**
      * {@inheritDoc}
      */
-    public function load(array $configs, ContainerBuilder $container)
+    public function load(array $configs, ContainerBuilder $container): void
     {
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         foreach (static::$files as $file) {

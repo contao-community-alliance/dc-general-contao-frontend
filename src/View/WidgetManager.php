@@ -28,9 +28,11 @@ use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\Event\Encod
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Event\DcGeneralFrontendEvents;
 use ContaoCommunityAlliance\DcGeneral\Data\ModelInterface;
 use ContaoCommunityAlliance\DcGeneral\Data\PropertyValueBag;
+use ContaoCommunityAlliance\DcGeneral\DataDefinition\ContainerInterface;
 use ContaoCommunityAlliance\DcGeneral\EnvironmentInterface;
 use ContaoCommunityAlliance\DcGeneral\Exception\DcGeneralInvalidArgumentException;
 use ContaoCommunityAlliance\DcGeneral\Exception\DcGeneralRuntimeException;
+use Psr\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Class WidgetManager.
@@ -46,20 +48,19 @@ class WidgetManager
      *
      * @var EnvironmentInterface
      */
-    protected $environment;
+    protected EnvironmentInterface $environment;
 
     /**
      * The model for which widgets shall be generated.
      *
      * @var ModelInterface
      */
-    protected $model;
+    protected ModelInterface $model;
 
     /**
      * Create a new instance.
      *
      * @param EnvironmentInterface $environment The environment in use.
-     *
      * @param ModelInterface       $model       The model for which widgets shall be generated.
      */
     public function __construct(EnvironmentInterface $environment, ModelInterface $model)
@@ -71,20 +72,23 @@ class WidgetManager
     /**
      * Retrieve the instance of a widget for the given property.
      *
-     * @param string           $property Name of the property for which the widget shall be retrieved.
+     * @param string                $property Name of the property for which the widget shall be retrieved.
+     * @param PropertyValueBag|null $valueBag The input values to use (optional).
      *
-     * @param PropertyValueBag $valueBag The input values to use (optional).
+     * @return \Widget|null
      *
-     * @return \Widget
-     *
-     * @throws DcGeneralRuntimeException         When No widget could be build.
+     * @throws DcGeneralRuntimeException         When No widget could be built.
      * @throws DcGeneralInvalidArgumentException When property is not defined in the property definitions.
      */
     public function getWidget($property, PropertyValueBag $valueBag = null)
     {
-        $environment         = $this->getEnvironment();
-        $dispatcher          = $environment->getEventDispatcher();
-        $propertyDefinitions = $environment->getDataDefinition()->getPropertiesDefinition();
+        $environment = $this->getEnvironment();
+        $dispatcher  = $environment->getEventDispatcher();
+        assert($dispatcher instanceof EventDispatcherInterface);
+        $dataDefinition = $environment->getDataDefinition();
+        assert($dataDefinition instanceof ContainerInterface);
+
+        $propertyDefinitions = $dataDefinition->getPropertiesDefinition();
 
         if (!$propertyDefinitions->hasProperty($property)) {
             throw new DcGeneralInvalidArgumentException(
@@ -97,7 +101,11 @@ class WidgetManager
 
         if ($valueBag) {
             $values = new PropertyValueBag($valueBag->getArrayCopy());
-            $this->environment->getController()->updateModelFromPropertyBag($model, $values);
+
+            $controller = $this->environment->getController();
+            assert($controller instanceof ContainerInterface);
+
+            $controller->updateModelFromPropertyBag($model, $values);
         }
 
         $propertyDefinition = $propertyDefinitions->getProperty($property);
@@ -117,14 +125,12 @@ class WidgetManager
      * Render the widget for the named property.
      *
      * @param string           $property     The name of the property for which the widget shall be rendered.
-     *
      * @param bool             $ignoreErrors Flag if the error property of the widget shall get cleared prior rendering.
-     *
      * @param PropertyValueBag $valueBag     The input values to use (optional).
      *
      * @return string
      *
-     * @throws DcGeneralRuntimeException         For unknown properties.
+     * @throws DcGeneralRuntimeException or unknown properties.
      */
     public function renderWidget($property, $ignoreErrors = false, PropertyValueBag $valueBag = null)
     {
@@ -163,7 +169,7 @@ class WidgetManager
      *
      * @return void
      */
-    public function processInput(PropertyValueBag $valueBag)
+    public function processInput(PropertyValueBag $valueBag): void
     {
         $post = $this->hijackPost($valueBag);
 
@@ -179,7 +185,6 @@ class WidgetManager
      * Process a single property.
      *
      * @param PropertyValueBag $valueBag The value bag to update.
-     *
      * @param string           $property The property to process.
      *
      * @return void
@@ -187,11 +192,11 @@ class WidgetManager
      * @throws DcGeneralRuntimeException         When No widget could be build.
      * @throws DcGeneralInvalidArgumentException When property is not defined in the property definitions.
      */
-    private function processProperty(PropertyValueBag $valueBag, $property)
+    private function processProperty(PropertyValueBag $valueBag, string $property): void
     {
         // NOTE: the passed input values are RAW DATA from the input provider - aka widget known values and not
         // native data as in the model.
-        // Therefore we do not need to decode them but MUST encode them.
+        // Therefore, we do not need to decode them but MUST encode them.
         $widget = $this->getWidget($property, $valueBag);
         $widget->validate();
 
@@ -236,7 +241,7 @@ class WidgetManager
      * @SuppressWarnings(PHPMD.Superglobals)
      * @SuppressWarnings(PHPMD.CamelCaseVariableName)
      */
-    private function hijackPost(PropertyValueBag $valueBag)
+    private function hijackPost(PropertyValueBag $valueBag): array
     {
         $post  = $_POST;
         $_POST = [];
@@ -260,7 +265,7 @@ class WidgetManager
      * @SuppressWarnings(PHPMD.Superglobals)
      * @SuppressWarnings(PHPMD.CamelCaseVariableName)
      */
-    private function restorePost($post)
+    private function restorePost(array $post): void
     {
         $_POST = $post;
         Input::resetCache();
@@ -285,7 +290,7 @@ class WidgetManager
      *
      * @return mixed
      */
-    private function encodeValue($property, $value, PropertyValueBag $valueBag)
+    private function encodeValue($property, $value, PropertyValueBag $valueBag): mixed
     {
         $environment = $this->getEnvironment();
 
@@ -294,7 +299,10 @@ class WidgetManager
             ->setProperty($property)
             ->setValue($value);
 
-        $environment->getEventDispatcher()->dispatch($event, EncodePropertyValueFromWidgetEvent::NAME);
+        $dispatcher = $environment->getEventDispatcher();
+        assert($dispatcher instanceof EventDispatcherInterface);
+
+        $dispatcher->dispatch($event, EncodePropertyValueFromWidgetEvent::NAME);
 
         return $event->getValue();
     }
