@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015-2019 Contao Community Alliance.
+ * (c) 2015-2023 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -14,7 +14,7 @@
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author     Ingolf Steinhardt <info@e-spin.de>
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
- * @copyright  2015-2019 Contao Community Alliance.
+ * @copyright  2015-2023 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
@@ -24,6 +24,8 @@ namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\ActionHandler;
 use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminator;
 use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminatorAwareTrait;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\EditMask;
+use ContaoCommunityAlliance\DcGeneral\Data\DataProviderInterface;
+use ContaoCommunityAlliance\DcGeneral\DataDefinition\ContainerInterface;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\Definition\BasicDefinitionInterface;
 use ContaoCommunityAlliance\DcGeneral\EnvironmentInterface;
 use ContaoCommunityAlliance\DcGeneral\Event\ActionEvent;
@@ -60,7 +62,10 @@ class CreateHandler
      */
     public function handleEvent(ActionEvent $event): void
     {
-        if (!$this->scopeDeterminator->currentScopeIsFrontend()) {
+        if (
+            null === ($scopeDeterminator = $this->scopeDeterminator)
+            || !$scopeDeterminator->currentScopeIsFrontend()
+        ) {
             return;
         }
 
@@ -74,7 +79,7 @@ class CreateHandler
         }
 
         // Only run when no response given yet.
-        if (null !== $event->getResponse()) {
+        if ('' !== $event->getResponse()) {
             return;
         }
 
@@ -95,7 +100,9 @@ class CreateHandler
      */
     public function process(EnvironmentInterface $environment)
     {
-        $definition      = $environment->getDataDefinition();
+        $definition = $environment->getDataDefinition();
+        assert($definition instanceof ContainerInterface);
+
         $basicDefinition = $definition->getBasicDefinition();
 
         if (!$basicDefinition->isCreatable()) {
@@ -107,18 +114,22 @@ class CreateHandler
         }
 
         $dataProvider = $environment->getDataProvider();
-        $properties   = $definition->getPropertiesDefinition()->getProperties();
-        $model        = $dataProvider->getEmptyModel();
-        $clone        = $dataProvider->getEmptyModel();
+        assert($dataProvider instanceof DataProviderInterface);
+
+        $properties = $definition->getPropertiesDefinition()->getProperties();
+        $model      = $dataProvider->getEmptyModel();
+        $clone      = $dataProvider->getEmptyModel();
 
         // If some of the fields have a default value, set it.
         foreach ($properties as $property) {
             $propName = $property->getName();
 
-            if ($property->getDefaultValue() !== null) {
-                $model->setProperty($propName, $property->getDefaultValue());
-                $clone->setProperty($propName, $property->getDefaultValue());
+            if ((null === $property->getDefaultValue()) || !$dataProvider->fieldExists($propName)) {
+                continue;
             }
+
+            $clone->setProperty($propName, $property->getDefaultValue());
+            $model->setProperty($propName, $property->getDefaultValue());
         }
 
         return (new EditMask($environment, $model, $clone, null, null))->execute();

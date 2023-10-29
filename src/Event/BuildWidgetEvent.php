@@ -19,6 +19,7 @@
 
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Event;
 
+use Contao\Widget;
 use ContaoCommunityAlliance\DcGeneral\Data\ModelInterface;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\Definition\Properties\PropertyInterface;
 use ContaoCommunityAlliance\DcGeneral\EnvironmentInterface;
@@ -39,9 +40,9 @@ class BuildWidgetEvent extends AbstractModelAwareEvent
     /**
      * The instantiated widget.
      *
-     * @var \Widget
+     * @var Widget|null
      */
-    protected $widget;
+    protected $widget = null;
 
     /**
      * Create a new event.
@@ -79,7 +80,7 @@ class BuildWidgetEvent extends AbstractModelAwareEvent
     /**
      * Retrieve the widget instance from the event.
      *
-     * @return \Widget
+     * @return Widget|null
      */
     public function getWidget()
     {

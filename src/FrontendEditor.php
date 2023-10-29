@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015-2022 Contao Community Alliance.
+ * (c) 2015-2023 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,7 +15,7 @@
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
  * @author     Sven Baumann <baumann.sv@gmail.com>
  * @author     Ingolf Steinhardt <info@e-spin.de>
- * @copyright  2015-2022 Contao Community Alliance.
+ * @copyright  2015-2023 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
@@ -27,6 +27,7 @@ use ContaoCommunityAlliance\DcGeneral\DcGeneralEvents;
 use ContaoCommunityAlliance\DcGeneral\EnvironmentInterface;
 use ContaoCommunityAlliance\DcGeneral\Event\ActionEvent;
 use ContaoCommunityAlliance\DcGeneral\Factory\DcGeneralFactory;
+use ContaoCommunityAlliance\DcGeneral\InputProviderInterface;
 use ContaoCommunityAlliance\Translator\TranslatorInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
@@ -80,19 +81,25 @@ class FrontendEditor
     public function editFor($containerName, $defaultAction = 'showAll'): string
     {
         $environment = $this->createDcGeneral($containerName);
-        $actionName  = $environment->getInputProvider()->getParameter('act') ?: $defaultAction;
-        $action      = new Action($actionName);
-        $event       = new ActionEvent($environment, $action);
+
+        $inputProvider = $environment->getInputProvider();
+        assert($inputProvider instanceof InputProviderInterface);
+
+        $actionName = $inputProvider->getParameter('act') ?: $defaultAction;
+        assert(\is_string($actionName));
+
+        $action = new Action($actionName);
+        $event  = new ActionEvent($environment, $action);
 
         // If the action parameter is not set, it is set. So that the action parameter can be used everywhere.
-        if (false === ($hasActionName = $environment->getInputProvider()->hasParameter('act'))) {
-            $environment->getInputProvider()->setParameter('act', $actionName);
+        if (false === ($hasActionName = $inputProvider->hasParameter('act'))) {
+            $inputProvider->setParameter('act', $actionName);
         }
 
         $this->dispatcher->dispatch($event, DcGeneralEvents::ACTION);
 
         if (false === $hasActionName) {
-            $environment->getInputProvider()->unsetParameter('act');
+            $inputProvider->unsetParameter('act');
         }
 
         if (!$result = $event->getResponse()) {

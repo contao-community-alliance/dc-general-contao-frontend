@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015-2017 Contao Community Alliance.
+ * (c) 2015-2023 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,7 +12,8 @@
  *
  * @package    contao-community-alliance/dc-general-contao-frontend
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
- * @copyright  2015-2017 Contao Community Alliance.
+ * @author     Ingolf Steinhardt <info@e-spin.de>
+ * @copyright  2015-2023 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
@@ -29,11 +30,10 @@ use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
  */
 class CcaDcGeneralContaoFrontendExtension extends Extension
 {
-
     /**
      * The files to load.
      *
-     * @var array
+     * @var string[]
      */
     private static $files = [
         'listeners.yml',
@@ -43,7 +43,7 @@ class CcaDcGeneralContaoFrontendExtension extends Extension
     /**
      * {@inheritDoc}
      */
-    public function load(array $configs, ContainerBuilder $container)
+    public function load(array $configs, ContainerBuilder $container): void
     {
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         foreach (static::$files as $file) {

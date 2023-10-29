@@ -32,6 +32,8 @@ use Contao\Input;
 use Contao\StringUtil;
 use Contao\System;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Exception;
+use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -60,6 +62,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * @property string  sortBy
  *
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class UploadOnSteroids extends FormFileUpload
 {
@@ -96,7 +99,7 @@ class UploadOnSteroids extends FormFileUpload
      *
      * @var TranslatorInterface
      */
-    protected TranslatorInterface $translator;
+    protected $translator;
 
     /**
      * The input provider.
@@ -110,44 +113,46 @@ class UploadOnSteroids extends FormFileUpload
      *
      * @var Adapter|FilesModel
      */
-    private $filesModel;
+    private Adapter|FilesModel $filesModel;
 
     /**
      * The filesystem.
      *
      * @var Filesystem
      */
-    private $filesystem;
+    private Filesystem $filesystem;
 
     /**
      * The slug generator.
      *
      * @var SlugGenerator
      */
-    private $slugGenerator;
+    private SlugGenerator $slugGenerator;
 
     /**
      * {@inheritDoc}
      */
     public function __set($key, $value)
     {
-        if (\in_array(
-            $key,
-            [
-                'deselect',
-                'delete',
-                'extendFolder',
-                'normalizeExtendFolder',
-                'normalizeFilename',
-                'prefixFilename',
-                'postfixFilename',
-                'files',
-                'showThumbnail',
-                'multiple',
-                'imageSize',
-                'sortBy'
-            ]
-        )) {
+        if (
+            \in_array(
+                $key,
+                [
+                    'deselect',
+                    'delete',
+                    'extendFolder',
+                    'normalizeExtendFolder',
+                    'normalizeFilename',
+                    'prefixFilename',
+                    'postfixFilename',
+                    'files',
+                    'showThumbnail',
+                    'multiple',
+                    'imageSize',
+                    'sortBy'
+                ]
+            )
+        ) {
             $this->arrConfiguration[$key] = $value;
 
             return;
@@ -182,7 +187,7 @@ class UploadOnSteroids extends FormFileUpload
      */
     public function parseFilename(string $filename): string
     {
-        if (empty($filename) || !\is_string($filename)) {
+        if (empty($filename)) {
             return $filename;
         }
 
@@ -229,6 +234,7 @@ class UploadOnSteroids extends FormFileUpload
      *
      * @return void
      *
+     * @throws \Exception
      * @SuppressWarnings(PHPMD.Superglobals)
      */
     private function validateSingleUpload(): void
@@ -259,6 +265,7 @@ class UploadOnSteroids extends FormFileUpload
      *
      * @return void
      *
+     * @throws \Exception
      * @SuppressWarnings(PHPMD.Superglobals)
      */
     private function validateMultipleUpload(): void
@@ -328,13 +335,14 @@ class UploadOnSteroids extends FormFileUpload
     /**
      * Deselect the file, if is mark for deselect.
      *
-     * @param string $inputName The input nanme.
+     * @param string $inputName The input name.
      *
      * @return void
      */
-    private function deselectFile(string $inputName)
+    private function deselectFile(string $inputName): void
     {
-        if (!$this->deselect
+        if (
+            !$this->deselect
             || $this->hasErrors()
             || !($post = $this->inputProvider()->post($inputName))
             || !isset($post['reset'][0])
@@ -363,9 +371,10 @@ class UploadOnSteroids extends FormFileUpload
      *
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
-    private function deleteFile(string $inputName)
+    private function deleteFile(string $inputName): void
     {
-        if (!$this->delete
+        if (
+            !$this->delete
             || $this->hasErrors()
             || !($post = $this->inputProvider()->post($inputName))
             || !isset($post['delete'][0])
@@ -464,9 +473,10 @@ class UploadOnSteroids extends FormFileUpload
      *
      * @return void
      *
+     * @throws Exception
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
-    private function addFiles($sortBy)
+    private function addFiles($sortBy): void
     {
         $this->files = [];
 
@@ -478,6 +488,7 @@ class UploadOnSteroids extends FormFileUpload
         $connection = self::getContainer()->get('database_connection');
 
         $platform = $connection->getDatabasePlatform();
+        assert($platform instanceof AbstractPlatform);
 
         $builder = $connection->createQueryBuilder();
 
@@ -626,7 +637,7 @@ class UploadOnSteroids extends FormFileUpload
      *
      * @return Adapter|Input
      */
-    private function inputProvider(): Adapter
+    private function inputProvider(): Input|Adapter
     {
         if (!$this->inputProvider) {
             $this->inputProvider = self::getContainer()->get('contao.framework')->getAdapter(Input::class);
@@ -640,7 +651,7 @@ class UploadOnSteroids extends FormFileUpload
      *
      * @return Adapter|FilesModel
      */
-    private function filesModel(): Adapter
+    private function filesModel(): FilesModel|Adapter
     {
         if (!$this->filesModel) {
             $this->filesModel = self::getContainer()->get('contao.framework')->getAdapter(FilesModel::class);
@@ -654,7 +665,7 @@ class UploadOnSteroids extends FormFileUpload
      *
      * @return Filesystem
      */
-    private function filesystem()
+    private function filesystem(): Filesystem
     {
         if (!$this->filesystem) {
             $this->filesystem = self::getContainer()->get('filesystem');
@@ -668,7 +679,7 @@ class UploadOnSteroids extends FormFileUpload
      *
      * @return SlugGenerator
      */
-    private function slugGenerator()
+    private function slugGenerator(): SlugGenerator
     {
         if (!$this->slugGenerator) {
             $this->slugGenerator = System::getContainer()->get('contao.slug');
