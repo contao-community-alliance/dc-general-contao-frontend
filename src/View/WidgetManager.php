@@ -23,6 +23,7 @@ namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View;
 
 use Contao\FormTextArea;
 use Contao\Input;
+use Contao\Widget;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Event\BuildWidgetEvent;
 use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\Event\EncodePropertyValueFromWidgetEvent;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Event\DcGeneralFrontendEvents;
@@ -114,7 +115,7 @@ class WidgetManager
         $dispatcher->dispatch($event, DcGeneralFrontendEvents::BUILD_WIDGET);
         if (!$event->getWidget()) {
             throw new DcGeneralRuntimeException(
-                sprintf('Widget was not build for property %s::%s.', $this->model->getProviderName(), $property)
+                \sprintf('Widget was not build for property %s::%s.', $this->model->getProviderName(), $property)
             );
         }
 
@@ -174,7 +175,7 @@ class WidgetManager
         $post = $this->hijackPost($valueBag);
 
         // Now get and validate the widgets.
-        foreach (array_keys($valueBag->getArrayCopy()) as $property) {
+        foreach (\array_keys($valueBag->getArrayCopy()) as $property) {
             $this->processProperty($valueBag, $property);
         }
 
@@ -198,6 +199,7 @@ class WidgetManager
         // native data as in the model.
         // Therefore, we do not need to decode them but MUST encode them.
         $widget = $this->getWidget($property, $valueBag);
+        assert($widget instanceof Widget);
         $widget->validate();
 
         if ($widget->hasErrors()) {
@@ -217,6 +219,7 @@ class WidgetManager
         try {
             // See https://github.com/contao/contao/blob/7e6bacd4e/core-bundle/src/Resources/contao/forms/FormTextArea.php#L147
             if ($widget instanceof FormTextArea) {
+                /** @psalm-suppress UndefinedMagicPropertyFetch */
                 $valueBag->setPropertyValue($property, $this->encodeValue($property, $widget->rawValue, $valueBag));
                 return;
             }
@@ -276,7 +279,7 @@ class WidgetManager
      *
      * @return EnvironmentInterface
      */
-    private function getEnvironment()
+    private function getEnvironment(): EnvironmentInterface
     {
         return $this->environment;
     }
@@ -290,7 +293,7 @@ class WidgetManager
      *
      * @return mixed
      */
-    private function encodeValue($property, $value, PropertyValueBag $valueBag): mixed
+    private function encodeValue(string $property, mixed $value, PropertyValueBag $valueBag): mixed
     {
         $environment = $this->getEnvironment();
 

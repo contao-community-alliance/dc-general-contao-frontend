@@ -26,6 +26,7 @@ use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Event\DcGeneralFrontendEven
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Event\HandleSubmitEvent;
 use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\Event\GetEditMaskSubHeadlineEvent;
 use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\Event\GetEditModeButtonsEvent;
+use ContaoCommunityAlliance\DcGeneral\Controller\ControllerInterface;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\ContainerInterface;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\Definition\PropertiesDefinitionInterface;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\Palette\PaletteInterface;
@@ -135,12 +136,14 @@ class EditMask
      */
     public function __construct($environment, $model, $originalModel, $preFunction, $postFunction)
     {
-        $providerName        = $model->getProviderName();
-        $this->environment   = $environment;
-        $this->translator    = $environment->getTranslator();
-        $this->dispatcher    = $environment->getEventDispatcher();
-        $this->definition    = $environment->getDataDefinition();
-        $this->modelProvider = $this->definition->getDataProviderDefinition()->getInformation($providerName);
+        $providerName      = $model->getProviderName();
+        $this->environment = $environment;
+        $this->translator  = $environment->getTranslator();
+        $this->dispatcher  = $environment->getEventDispatcher();
+        $dataDefinition    = $environment->getDataDefinition();
+        assert($dataDefinition instanceof ContainerInterface);
+        $this->definition    = $dataDefinition;
+        $this->modelProvider = $dataDefinition->getDataProviderDefinition()->getInformation($providerName);
         $this->model         = $model;
         $this->originalModel = $originalModel;
         $this->preFunction   = $preFunction;
@@ -174,13 +177,14 @@ class EditMask
         $palette = $palettesDefinition->findPalette($this->model);
 
         $propertyValues = $this->processInput($widgetManager);
-        if ($isSubmitted && $propertyValues) {
+        assert($propertyValues instanceof PropertyValueBag);
+        if ($isSubmitted) {
             // Pass 2: Determine the real palette we want to work on if we have some data submitted.
             $palette = $palettesDefinition->findPalette($this->model, $propertyValues);
 
             // Update the model - the model might add some more errors to the propertyValueBag via exceptions.
             $controller = $this->environment->getController();
-            assert($controller instanceof ContainerInterface);
+            assert($controller instanceof ControllerInterface);
             $controller->updateModelFromPropertyBag($this->model, $propertyValues);
         }
 
@@ -235,7 +239,7 @@ class EditMask
 
         if ($input->getValue('FORM_SUBMIT') === $this->definition->getName()) {
             $propertyValues = new PropertyValueBag();
-            $propertyNames  = array_intersect(
+            $propertyNames  = \array_intersect(
                 $this->definition->getPropertiesDefinition()->getPropertyNames(),
                 (array) $input->getValue('FORM_INPUTS')
             );
@@ -330,7 +334,7 @@ class EditMask
         $button  = '<button type="submit" name="%s" id="%s" class="submit %s" accesskey="%s">%s</button>';
         $buttons = [];
 
-        $buttons['save'] = sprintf(
+        $buttons['save'] = \sprintf(
             $button,
             'save',
             'save',
@@ -340,7 +344,7 @@ class EditMask
         );
 
         if ($this->definition->getBasicDefinition()->isCreatable()) {
-            $buttons['saveNcreate'] = sprintf(
+            $buttons['saveNcreate'] = \sprintf(
                 $button,
                 'saveNcreate',
                 'saveNcreate',
@@ -418,6 +422,7 @@ class EditMask
                 $hidden[] = \sprintf('<input type="hidden" name="FORM_INPUTS[]" value="%s">', $propertyName);
             }
 
+            $fieldSet            = [];
             $fieldSet['label']   = $legendName;
             $fieldSet['class']   = $first ? 'tl_tbox' : 'tl_box';
             $fieldSet['palette'] = \implode('', $hidden) . \implode('', $fields);
@@ -465,13 +470,13 @@ class EditMask
      */
     private function storeVersion(ModelInterface $model): void
     {
-        if (!$this->modelProvider->isVersioningEnabled()) {
+        if (!$this->modelProvider->isVersioningEnabled() || null === $model) {
             return;
         }
 
-        $environment    = $this->environment;
-        $modelId        = $model->getId();
-        $dataProvider   = $environment->getDataProvider($this->model->getProviderName());
+        $environment  = $this->environment;
+        $modelId      = $model->getId();
+        $dataProvider = $environment->getDataProvider($this->model->getProviderName());
         assert($dataProvider instanceof DataProviderInterface);
 
         $currentVersion = $dataProvider->getActiveVersion($modelId);
@@ -485,7 +490,7 @@ class EditMask
 
             /** @psalm-suppress DeprecatedMethod */
             if ($user->authenticate()) {
-                $username = $user->username;
+                $username = $user->username ?? '';
             }
 
             $dataProvider->saveVersion($model, $username);

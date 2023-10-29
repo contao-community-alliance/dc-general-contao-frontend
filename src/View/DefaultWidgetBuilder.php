@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015-2023 Contao Community Alliance.
+ * (c) 2015-2024 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -14,7 +14,7 @@
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
  * @author     Ingolf Steinhardt <info@e-spin.de>
- * @copyright  2015-2023 Contao Community Alliance.
+ * @copyright  2015-2024 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
@@ -120,7 +120,7 @@ class DefaultWidgetBuilder
         $dispatcher->dispatch($event, $event::NAME);
         $varValue = $event->getValue();
 
-        $propExtra['required']  = ($varValue == '') && !empty($propExtra['mandatory']);
+        $propExtra['required']  = ($varValue === '') && !empty($propExtra['mandatory']);
         $propExtra['tableless'] = true;
         if (
             isset($propExtra['readonly'])
@@ -158,15 +158,15 @@ class DefaultWidgetBuilder
             $propExtra['class'] = $this->addCssClass($propExtra['class'], $propExtra['tl_class']);
         }
 
-        $arrConfig = array(
+        $arrConfig = [
             'inputType' => $property->getWidgetType(),
-            'label'     => array(
+            'label'     => [
                 $property->getLabel(),
                 $property->getDescription()
-            ),
+            ],
             'options'   => $this->getOptionsForWidget($environment, $property, $model),
             'eval'      => $propExtra,
-        );
+        ];
 
         if (isset($propExtra['reference'])) {
             $arrConfig['reference'] = $propExtra['reference'];
@@ -205,7 +205,7 @@ class DefaultWidgetBuilder
      *
      * @param PropertyInterface $property The property to get the widget class name for.
      *
-     * @return string|null
+     * @return class-string|null
      *
      * @SuppressWarnings(PHPMD.Superglobals)
      * @SuppressWarnings(PHPMD.CamelCaseVariableName)
@@ -217,7 +217,7 @@ class DefaultWidgetBuilder
         }
 
         $className = (string) $GLOBALS['TL_FFL'][$property->getWidgetType()];
-        if (!class_exists($className)) {
+        if (!\class_exists($className)) {
             return null;
         }
 

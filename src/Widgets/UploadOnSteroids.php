@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2016-2023 Contao Community Alliance.
+ * (c) 2016-2024 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -13,7 +13,7 @@
  * @package   contao-community-alliance/dc-general-contao-frontend
  * @author    Sven Baumann <baumann.sv@gmail.com>
  * @author    Ingolf Steinhardt <info@e-spin.de>
- * @copyright 2016-2023 Contao Community Alliance.
+ * @copyright 2016-2024 Contao Community Alliance.
  * @license   https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  *
  * @filesource
@@ -31,6 +31,7 @@ use Contao\FormFileUpload;
 use Contao\Input;
 use Contao\StringUtil;
 use Contao\System;
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
@@ -164,7 +165,7 @@ class UploadOnSteroids extends FormFileUpload
     /**
      * {@inheritDoc}
      */
-    public function parse($attributes = null)
+    public function parse($arrAttributes = null)
     {
         $this->addIsDeletable();
         $this->addIsDeselectable();
@@ -175,7 +176,7 @@ class UploadOnSteroids extends FormFileUpload
 
         $this->value = \implode(',', \array_map('\Contao\StringUtil::binToUuid', (array) $this->value));
 
-        return parent::parse($attributes);
+        return parent::parse($arrAttributes);
     }
 
     /**
@@ -447,7 +448,7 @@ class UploadOnSteroids extends FormFileUpload
             return $filename;
         }
 
-        // We save the default delimeter '-' at prefix and postfix
+        // We save the default delimiter '-' at prefix and postfix
         // see https://github.com/ausi/slug-generator/issues/34.
         $prefix = $this->prefixFilename;
         if ($this->prefixFilename && $this->normalizeFilename) {
@@ -530,7 +531,7 @@ class UploadOnSteroids extends FormFileUpload
             )
             ->from($platform->quoteIdentifier('tl_files'))
             ->where($builder->expr()->in($platform->quoteIdentifier('uuid'), ':uuids'))
-            ->setParameter('uuids', (array) $this->value, Connection::PARAM_STR_ARRAY);
+            ->setParameter('uuids', (array) $this->value, ArrayParameterType::STRING);
 
         $statement = $builder->executeQuery();
         if (!$statement->rowCount()) {
@@ -705,11 +706,11 @@ class UploadOnSteroids extends FormFileUpload
      */
     private function translator(): TranslatorInterface
     {
-        if (!$this->filesystem) {
-            $this->filesystem = self::getContainer()->get('translator');
+        if (!$this->translator) {
+            $this->translator = self::getContainer()->get('translator');
         }
 
-        return $this->filesystem;
+        return $this->translator;
     }
 
     /**
