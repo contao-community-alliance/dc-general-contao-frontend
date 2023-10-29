@@ -39,6 +39,8 @@ use ContaoCommunityAlliance\DcGeneral\InputProviderInterface;
 
 /**
  * This class handles the edit actions in the frontend.
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class EditHandler
 {

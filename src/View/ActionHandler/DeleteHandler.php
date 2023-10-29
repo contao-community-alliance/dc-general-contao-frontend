@@ -41,6 +41,8 @@ use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * This class handles the edit actions in the frontend.
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class DeleteHandler
 {
@@ -81,7 +83,8 @@ class DeleteHandler
     {
         if (
             null === ($scopeDeterminator = $this->scopeDeterminator)
-            || !$scopeDeterminator->currentScopeIsFrontend()) {
+            || !$scopeDeterminator->currentScopeIsFrontend()
+        ) {
             return;
         }
 
@@ -113,7 +116,7 @@ class DeleteHandler
      */
     public function process(EnvironmentInterface $environment): void
     {
-        $definition= $environment->getDataDefinition();
+        $definition = $environment->getDataDefinition();
         assert($definition instanceof ContainerInterface);
 
         $basicDefinition = $definition->getBasicDefinition();

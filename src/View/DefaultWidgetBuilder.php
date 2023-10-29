@@ -39,6 +39,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
  * Widget Builder to build Contao frontend widgets.
  *
  * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class DefaultWidgetBuilder
 {

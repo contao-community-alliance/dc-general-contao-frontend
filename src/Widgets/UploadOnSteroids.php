@@ -62,6 +62,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * @property string  sortBy
  *
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class UploadOnSteroids extends FormFileUpload
 {
