@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015-2023 Contao Community Alliance.
+ * (c) 2015-2024 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,7 +15,7 @@
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
  * @author     Sven Baumann <baumann.sv@gmail.com>
  * @author     Ingolf Steinhardt <info@e-spin.de>
- * @copyright  2015-2023 Contao Community Alliance.
+ * @copyright  2015-2024 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
@@ -28,6 +28,7 @@ use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\Event\GetEd
 use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\Event\GetEditModeButtonsEvent;
 use ContaoCommunityAlliance\DcGeneral\Controller\ControllerInterface;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\ContainerInterface;
+use ContaoCommunityAlliance\DcGeneral\DataDefinition\DataProviderInformationInterface;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\Definition\PropertiesDefinitionInterface;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\Palette\PaletteInterface;
 use ContaoCommunityAlliance\DcGeneral\Data\DataProviderInterface;
@@ -86,9 +87,9 @@ class EditMask
     /**
      * The data provider of the model being edited.
      *
-     * @var DataProviderInterface
+     * @var DataProviderInformationInterface
      */
-    private DataProviderInterface $modelProvider;
+    private DataProviderInformationInterface $modelProvider;
 
     /**
      * The model to be manipulated.
@@ -156,7 +157,6 @@ class EditMask
      * @return string
      *
      * @throws DcGeneralRuntimeException         If the data container is not editable, closed.
-     *
      * @throws DcGeneralInvalidArgumentException If an unknown property is encountered in the palette.
      */
     public function execute()
@@ -177,8 +177,7 @@ class EditMask
         $palette = $palettesDefinition->findPalette($this->model);
 
         $propertyValues = $this->processInput($widgetManager);
-        assert($propertyValues instanceof PropertyValueBag);
-        if ($isSubmitted) {
+        if ($isSubmitted && null !== $propertyValues) {
             // Pass 2: Determine the real palette we want to work on if we have some data submitted.
             $palette = $palettesDefinition->findPalette($this->model, $propertyValues);
 
@@ -365,9 +364,9 @@ class EditMask
     /**
      * Build the field sets.
      *
-     * @param WidgetManager    $widgetManager  The widget manager in use.
-     * @param PaletteInterface $palette        The palette to use.
-     * @param PropertyValueBag $propertyValues The property values.
+     * @param WidgetManager         $widgetManager  The widget manager in use.
+     * @param PaletteInterface      $palette        The palette to use.
+     * @param PropertyValueBag|null $propertyValues The property values.
      *
      * @return array
      *
@@ -379,7 +378,7 @@ class EditMask
     private function buildFieldSet(
         WidgetManager $widgetManager,
         PaletteInterface $palette,
-        PropertyValueBag $propertyValues
+        ?PropertyValueBag $propertyValues
     ): array {
         $propertyDefinitions = $this->definition->getPropertiesDefinition();
 
@@ -470,7 +469,7 @@ class EditMask
      */
     private function storeVersion(ModelInterface $model): void
     {
-        if (!$this->modelProvider->isVersioningEnabled() || null === $model) {
+        if (!$this->modelProvider->isVersioningEnabled()) {
             return;
         }
 
