@@ -285,7 +285,7 @@ class UploadOnSteroids extends FormFileUpload
         }
 
         $inputName = $this->name;
-        $values    = \array_map('\Contao\StringUtil::binToUuid', $this->value);
+        $values    = \array_map('\Contao\StringUtil::binToUuid', (array) $this->value);
 
         $files      = [];
         $inputFiles = $this->getMultipleUploadedFiles();
@@ -367,7 +367,7 @@ class UploadOnSteroids extends FormFileUpload
             return;
         }
 
-        $values     = \array_map('\Contao\StringUtil::binToUuid', $this->value);
+        $values     = \array_map('\Contao\StringUtil::binToUuid', (array) $this->value);
         $diffValues = \array_values(\array_diff($values, $post['reset']));
 
         $this->value = \array_map('\Contao\StringUtil::uuidToBin', $diffValues);
@@ -408,7 +408,7 @@ class UploadOnSteroids extends FormFileUpload
             return;
         }
 
-        $values     = \array_map('\Contao\StringUtil::binToUuid', $this->value);
+        $values     = \array_map('\Contao\StringUtil::binToUuid', (array) $this->value);
         $diffValues = \array_values(\array_diff($values, $post['delete']));
 
         foreach ($post['delete'] as $delete) {
