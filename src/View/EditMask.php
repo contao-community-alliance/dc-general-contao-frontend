@@ -139,8 +139,12 @@ class EditMask
     {
         $providerName      = $model->getProviderName();
         $this->environment = $environment;
-        $this->translator  = $environment->getTranslator();
-        $this->dispatcher  = $environment->getEventDispatcher();
+        $translator       = $environment->getTranslator();
+        assert($translator instanceof TranslatorInterface);
+        $this->translator  = $translator;
+        $dispatcher        = $environment->getEventDispatcher();
+        assert($dispatcher instanceof EventDispatcherInterface);
+        $this->dispatcher  = $dispatcher;
         $dataDefinition    = $environment->getDataDefinition();
         assert($dataDefinition instanceof ContainerInterface);
         $this->definition    = $dataDefinition;
@@ -479,10 +483,12 @@ class EditMask
         assert($dataProvider instanceof DataProviderInterface);
 
         $currentVersion = $dataProvider->getActiveVersion($modelId);
+        $version        = $dataProvider->getVersion($modelId, $currentVersion);
+        assert($version instanceof ModelInterface);
         // Compare version and current record.
         if (
             !$currentVersion
-            || !$dataProvider->sameModels($model, $dataProvider->getVersion($modelId, $currentVersion))
+            || !$dataProvider->sameModels($model, $version)
         ) {
             $user     = \FrontendUser::getInstance();
             $username = '(frontend anonymous)';

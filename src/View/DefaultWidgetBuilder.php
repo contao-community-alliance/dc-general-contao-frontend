@@ -21,6 +21,7 @@
 
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View;
 
+use Contao\Widget;
 use ContaoCommunityAlliance\Contao\Bindings\ContaoEvents;
 use ContaoCommunityAlliance\Contao\Bindings\Events\Widget\GetAttributesFromDcaEvent;
 use ContaoCommunityAlliance\DcGeneral\Contao\Compatibility\DcCompat;
@@ -86,7 +87,7 @@ class DefaultWidgetBuilder
      * @param PropertyInterface    $property    The property.
      * @param ModelInterface       $model       The current model.
      *
-     * @return \Widget
+     * @return Widget|null
      *
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
@@ -191,6 +192,7 @@ class DefaultWidgetBuilder
         }
 
         $widget = new $strClass($preparedConfig, new DcCompat($environment, $model, $propertyName));
+        assert($widget instanceof Widget);
 
         $widget->currentRecord = $model->getId();
 

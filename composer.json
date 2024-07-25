@@ -5,7 +5,8 @@
   "type": "contao-bundle",
   "keywords": [
     "contao",
-    "dc-general"
+    "dc-general",
+    "frontend"
   ],
   "authors": [
     {
@@ -25,7 +26,6 @@
     "email": "info@contao-community-alliance.org",
     "issues": "https://github.com/contao-community-alliance/dc-general-contao-frontend/issues",
     "wiki": "https://github.com/contao-community-alliance/dc-general-contao-frontend/wiki",
-    "irc": "irc://irc.freenode.org/contao.cca",
     "source": "https://github.com/contao-community-alliance/dc-general-contao-frontend"
   },
   "require": {

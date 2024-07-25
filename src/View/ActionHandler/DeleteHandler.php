@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015-2023 Contao Community Alliance.
+ * (c) 2015-2024 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -13,7 +13,7 @@
  * @package    contao-community-alliance/dc-general-contao-frontend
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
  * @author     Ingolf Steinhardt <info@e-spin.de>
- * @copyright  2015-2023 Contao Community Alliance.
+ * @copyright  2015-2024 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
@@ -40,7 +40,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
- * This class handles the edit actions in the frontend.
+ * This class handles the actions of edit in the frontend.
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
@@ -59,7 +59,6 @@ class DeleteHandler
      * DeleteHandler constructor.
      *
      * @param RequestScopeDeterminator $scopeDeterminator The request mode determinator.
-     *
      * @param RequestStack             $requestStack      The current request stack.
      */
     public function __construct(RequestScopeDeterminator $scopeDeterminator, RequestStack $requestStack)
@@ -155,6 +154,6 @@ class DeleteHandler
         $currentRequest = $this->requestStack->getCurrentRequest();
         assert($currentRequest instanceof Request);
 
-        throw new RedirectResponseException($currentRequest->headers->get('referer'));
+        throw new RedirectResponseException($currentRequest->headers->get('referer') ?? '');
     }
 }

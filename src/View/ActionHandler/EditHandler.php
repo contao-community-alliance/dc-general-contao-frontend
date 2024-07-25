@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015-2023 Contao Community Alliance.
+ * (c) 2015-2024 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,7 +15,7 @@
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
  * @author     Sven Baumann <baumann.sv@gmail.com>
  * @author     Ingolf Steinhardt <info@e-spin.de>
- * @copyright  2015-2023 Contao Community Alliance.
+ * @copyright  2015-2024 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
@@ -38,7 +38,7 @@ use ContaoCommunityAlliance\DcGeneral\Exception\NotEditableException;
 use ContaoCommunityAlliance\DcGeneral\InputProviderInterface;
 
 /**
- * This class handles the edit actions in the frontend.
+ * This class handles the actions of edit in the frontend.
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
@@ -76,10 +76,9 @@ class EditHandler
             return;
         }
 
-        $action = $event->getAction();
         // Only handle if we do not have a manual sorting or we know where to insert.
         // Manual sorting is handled by clipboard.
-        if ('edit' !== $action->getName()) {
+        if ('edit' !== $event->getAction()->getName()) {
             return;
         }
 
@@ -88,8 +87,7 @@ class EditHandler
             return;
         }
 
-        $response = $this->process($event->getEnvironment());
-        if (false !== $response) {
+        if ('' !== ($response = $this->process($event->getEnvironment()))) {
             $event->setResponse($response);
         }
     }
@@ -99,7 +97,7 @@ class EditHandler
      *
      * @param EnvironmentInterface $environment The environment.
      *
-     * @return string|bool
+     * @return string
      *
      * @throws PageNotFoundException If item to edit was not found.
      * @throws NotEditableException  When the definition is not editable.
@@ -117,7 +115,7 @@ class EditHandler
 
         // We only support flat tables, sorry.
         if (BasicDefinitionInterface::MODE_HIERARCHICAL === $basicDefinition->getMode()) {
-            return false;
+            return '';
         }
 
         $inputProvider = $environment->getInputProvider();

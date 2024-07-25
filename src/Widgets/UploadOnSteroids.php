@@ -64,6 +64,10 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  *
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ *
+ * @psalm-suppress PropertyNotSetInConstructor
+ * @psalm-suppress UndefinedThisPropertyFetch
+ * @psalm-suppress UndefinedThisPropertyAssignment
  */
 class UploadOnSteroids extends FormFileUpload
 {
@@ -133,11 +137,11 @@ class UploadOnSteroids extends FormFileUpload
     /**
      * {@inheritDoc}
      */
-    public function __set($key, $value)
+    public function __set($strKey, $varValue)
     {
         if (
             \in_array(
-                $key,
+                $strKey,
                 [
                     'deselect',
                     'delete',
@@ -154,12 +158,12 @@ class UploadOnSteroids extends FormFileUpload
                 ]
             )
         ) {
-            $this->arrConfiguration[$key] = $value;
+            $this->arrConfiguration[$strKey] = $varValue;
 
             return;
         }
 
-        parent::__set($key, $value);
+        parent::__set($strKey, $varValue);
     }
 
     /**
@@ -198,7 +202,7 @@ class UploadOnSteroids extends FormFileUpload
     /**
      * {@inheritDoc}
      */
-    public function validate()
+    public function validate(): void
     {
         $inputName = $this->name;
 
@@ -207,8 +211,9 @@ class UploadOnSteroids extends FormFileUpload
         }
 
         if ($this->extendFolder) {
+            /** @psalm-suppress InternalMethod - Class ContaoFramework is internal, not the getAdapter() method. */
             $uploadFolder     = $this->filesModel()->findByUuid($this->uploadFolder);
-            $uploadFolderPath = $uploadFolder->path . DIRECTORY_SEPARATOR . $this->extendFolder;
+            $uploadFolderPath = (string) $uploadFolder?->path . DIRECTORY_SEPARATOR . $this->extendFolder;
 
 
             $newUploadFolder = null;
@@ -217,13 +222,15 @@ class UploadOnSteroids extends FormFileUpload
                 $newUploadFolder = Dbafs::addResource($uploadFolderPath);
             }
 
-            if (!$newUploadFolder) {
+            if (null === $newUploadFolder) {
+                /** @psalm-suppress InternalMethod - Class ContaoFramework is internal, not the getAdapter() method. */
                 $newUploadFolder = $this->filesModel()->findByPath($uploadFolderPath);
             }
 
-            $this->uploadFolder = $newUploadFolder->uuid;
+            $this->uploadFolder = $newUploadFolder?->uuid ?? '';
         }
 
+        /** @psalm-suppress DeprecatedMethod */
         $this->validateSingleUpload();
         $this->validateMultipleUpload();
         $this->deselectFile($inputName);
@@ -237,6 +244,8 @@ class UploadOnSteroids extends FormFileUpload
      *
      * @throws \Exception
      * @SuppressWarnings(PHPMD.Superglobals)
+     *
+     * @deprecated Use multiple upload.
      */
     private function validateSingleUpload(): void
     {
@@ -245,7 +254,7 @@ class UploadOnSteroids extends FormFileUpload
         }
 
         $inputName                  = $this->name;
-        $_FILES[$inputName]['name'] = $this->parseFilename($_FILES[$inputName]['name']);
+        $_FILES[$inputName]['name'] = $this->parseFilename($_FILES[$inputName]['name'] ?? '');
 
         parent::validate();
 
@@ -325,7 +334,7 @@ class UploadOnSteroids extends FormFileUpload
 
         $files = [];
         foreach ($_FILES[$this->name] as $propertyName => $values) {
-            foreach ($values as $key => $value) {
+            foreach ((array) $values as $key => $value) {
                 $files[$key][$propertyName] = $value;
             }
         }
@@ -342,6 +351,7 @@ class UploadOnSteroids extends FormFileUpload
      */
     private function deselectFile(string $inputName): void
     {
+        /** @psalm-suppress InternalMethod - Class ContaoFramework is internal, not the getAdapter() method. */
         if (
             !$this->deselect
             || $this->hasErrors()
@@ -374,6 +384,7 @@ class UploadOnSteroids extends FormFileUpload
      */
     private function deleteFile(string $inputName): void
     {
+        /** @psalm-suppress InternalMethod - Class ContaoFramework is internal, not the getAdapter() method. */
         if (
             !$this->delete
             || $this->hasErrors()
@@ -386,13 +397,13 @@ class UploadOnSteroids extends FormFileUpload
         if (!$this->multiple && (StringUtil::binToUuid($this->value) === $post['delete'][0])) {
             $this->value = '';
 
+            /** @psalm-suppress InternalMethod - Class ContaoFramework is internal, not the getAdapter() method. */
             $file = $this->filesModel()->findByUuid($this->value);
-            if ($file) {
+            if (null !== $file) {
                 $this->filesystem->remove($file->path);
                 $file->delete();
+                Dbafs::deleteResource($file->path);
             }
-
-            Dbafs::deleteResource($file->path);
 
             return;
         }
@@ -401,8 +412,9 @@ class UploadOnSteroids extends FormFileUpload
         $diffValues = \array_values(\array_diff($values, $post['delete']));
 
         foreach ($post['delete'] as $delete) {
+            /** @psalm-suppress InternalMethod - Class ContaoFramework is internal, not the getAdapter() method. */
             $file = $this->filesModel()->findByUuid(StringUtil::uuidToBin($delete));
-            if (!$file) {
+            if (null === $file) {
                 continue;
             }
 
@@ -424,8 +436,8 @@ class UploadOnSteroids extends FormFileUpload
     private function convertFilename(string $filename): string
     {
         $fileInfo  = \pathinfo($filename);
-        $extension = $fileInfo['extension'];
-        $filename  = $fileInfo['filename'];
+        $extension = $fileInfo['extension'] ?? '';
+        $filename  = $fileInfo['filename'] ?? '';
 
         if ($this->normalizeFilename) {
             $extension = $this->slugGenerator()->generate($extension, $this->getSlugOptions());
@@ -453,15 +465,15 @@ class UploadOnSteroids extends FormFileUpload
         $prefix = $this->prefixFilename;
         if ($this->prefixFilename && $this->normalizeFilename) {
             $prefix = \str_repeat('-', \strspn($this->prefixFilename, '-')) .
-                $this->slugGenerator()->generate($this->prefixFilename, $this->getSlugOptions()) .
-                \str_repeat('-', \strspn(\strrev($this->prefixFilename), '-'));
+                      $this->slugGenerator()->generate($this->prefixFilename, $this->getSlugOptions()) .
+                      \str_repeat('-', \strspn(\strrev($this->prefixFilename), '-'));
         }
 
         $postfix = $this->postfixFilename;
         if ($this->postfixFilename && $this->normalizeFilename) {
             $postfix = \str_repeat('-', \strspn($this->postfixFilename, '-')) .
-                $this->slugGenerator()->generate($this->postfixFilename, $this->getSlugOptions()) .
-                \str_repeat('-', \strspn(\strrev($this->postfixFilename), '-'));
+                       $this->slugGenerator()->generate($this->postfixFilename, $this->getSlugOptions()) .
+                       \str_repeat('-', \strspn(\strrev($this->postfixFilename), '-'));
         }
 
         return $prefix . $filename . $postfix;
@@ -489,9 +501,7 @@ class UploadOnSteroids extends FormFileUpload
         $connection = self::getContainer()->get('database_connection');
 
         $platform = $connection->getDatabasePlatform();
-        assert($platform instanceof AbstractPlatform);
-
-        $builder = $connection->createQueryBuilder();
+        $builder  = $connection->createQueryBuilder();
 
         switch ($sortBy) {
             case 'name_desc':
@@ -549,10 +559,13 @@ class UploadOnSteroids extends FormFileUpload
         $fileList   = [];
         $container  = System::getContainer();
         $projectDir = $container->getParameter('kernel.project_dir');
+        assert(\is_string($projectDir));
         foreach ($statement->fetchAllAssociative() as $file) {
-            $objFile          = FilesModel::findByUuid($file['uuid']);
+            if (null === ($objFile = FilesModel::findByUuid($file['uuid']))) {
+                continue;
+            }
             $src              = $container->get('contao.image.image_factory')
-                ->create($projectDir . '/' . rawurldecode($objFile->path), $this->imageSize)
+                ?->create($projectDir . '/' . rawurldecode($objFile->path), $this->imageSize)
                 ->getUrl($projectDir);
             $objThumbnailFile = new File(rawurldecode($src));
 
@@ -628,7 +641,7 @@ class UploadOnSteroids extends FormFileUpload
             return;
         }
 
-        $this->prefix .= $this->multiple ? ' is-multiple' : '';
+        $this->prefix .= ' is-multiple';
 
         $this->addAttribute('multiple', 'multiple');
     }
@@ -640,10 +653,6 @@ class UploadOnSteroids extends FormFileUpload
      */
     private function inputProvider(): Input|Adapter
     {
-        if (!$this->inputProvider) {
-            $this->inputProvider = self::getContainer()->get('contao.framework')->getAdapter(Input::class);
-        }
-
         return $this->inputProvider;
     }
 
@@ -654,10 +663,6 @@ class UploadOnSteroids extends FormFileUpload
      */
     private function filesModel(): FilesModel|Adapter
     {
-        if (!$this->filesModel) {
-            $this->filesModel = self::getContainer()->get('contao.framework')->getAdapter(FilesModel::class);
-        }
-
         return $this->filesModel;
     }
 
@@ -668,10 +673,6 @@ class UploadOnSteroids extends FormFileUpload
      */
     private function filesystem(): Filesystem
     {
-        if (!$this->filesystem) {
-            $this->filesystem = self::getContainer()->get('filesystem');
-        }
-
         return $this->filesystem;
     }
 
@@ -682,10 +683,6 @@ class UploadOnSteroids extends FormFileUpload
      */
     private function slugGenerator(): SlugGenerator
     {
-        if (!$this->slugGenerator) {
-            $this->slugGenerator = System::getContainer()->get('contao.slug');
-        }
-
         return $this->slugGenerator;
     }
 
@@ -706,10 +703,6 @@ class UploadOnSteroids extends FormFileUpload
      */
     private function translator(): TranslatorInterface
     {
-        if (!$this->translator) {
-            $this->translator = self::getContainer()->get('translator');
-        }
-
         return $this->translator;
     }
 

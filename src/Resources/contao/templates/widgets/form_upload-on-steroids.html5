@@ -34,9 +34,7 @@
                     <div class="file-action">
                         <?php if ($this->deselect): ?>
                             <div class="file-reset">
-                                <label for="ctrl_reset_<?= $this->id ?>_<?= $key ?>"><?= $this->trans(
-                                        'MSC.reset'
-                                    ) ?></label>
+                                <label for="ctrl_reset_<?= $this->id ?>_<?= $key ?>"><?= $this->trans('MSC.reset') ?></label>
                                 <input type="checkbox" name="<?= $this->name ?>[reset][]"
                                        id="ctrl_reset_<?= $this->id ?>_<?= $key ?>"
                                        value="<?= \Contao\StringUtil::binToUuid($file['uuid']) ?>">
