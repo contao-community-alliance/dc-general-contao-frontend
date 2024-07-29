@@ -56,7 +56,8 @@
   },
   "extra": {
     "branch-alias": {
-      "dev-feature/2.3.0": "2.3.x-dev"
+      "dev-feature/2.3.0": "2.3.x-dev",
+      "dev-hotfix/update_phpcq": "2.3.x-dev"
     },
     "contao-manager-plugin": "ContaoCommunityAlliance\\DcGeneral\\ContaoFrontend\\ContaoManager\\Plugin"
   }

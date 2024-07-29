@@ -35,17 +35,15 @@
                         <?php if ($this->deselect): ?>
                             <div class="file-reset">
                                 <label for="ctrl_reset_<?= $this->id ?>_<?= $key ?>"><?= $this->trans('MSC.reset') ?></label>
-                                <input type="checkbox" name="<?= $this->name ?>[reset][]"
+                                <input type="checkbox" name="<?= $this->name ?>__reset[]"
                                        id="ctrl_reset_<?= $this->id ?>_<?= $key ?>"
                                        value="<?= \Contao\StringUtil::binToUuid($file['uuid']) ?>">
                             </div>
                         <?php endif; ?>
                         <?php if ($this->delete): ?>
                             <div class="file-delete">
-                                <label for="ctrl_delete_<?= $this->id ?>_<?= $key ?>"><?= $this->trans(
-                                        'MSC.delete'
-                                    ) ?></label>
-                                <input type="checkbox" name="<?= $this->name ?>[delete][]"
+                                <label for="ctrl_delete_<?= $this->id ?>_<?= $key ?>"><?= $this->trans('MSC.delete') ?></label>
+                                <input type="checkbox" name="<?= $this->name ?>__delete[]"
                                        id="ctrl_delete_<?= $this->id ?>_<?= $key ?>"
                                        value="<?= \Contao\StringUtil::binToUuid($file['uuid']) ?>">
                             </div>

@@ -1,10 +1,11 @@
 services:
     cca.dc-general.contao_frontend.view.build_widget_listener:
         class: ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\DefaultWidgetBuilder
-        tags:
-          - { name: kernel.event_listener, event: 'dc-general.contao-frontend.build-widget', method: handleEvent }
         arguments:
           - '@cca.dc-general.scope-matcher'
+          - '@translator'
+        tags:
+          - { name: kernel.event_listener, event: 'dc-general.contao-frontend.build-widget', method: handleEvent }
 
     cca.dc-general.contao_frontend.handle_submit_listener:
         class: ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Listener\HandleSubmitListener

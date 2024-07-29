@@ -21,6 +21,7 @@
 
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View;
 
+use Contao\System;
 use Contao\Widget;
 use ContaoCommunityAlliance\Contao\Bindings\ContaoEvents;
 use ContaoCommunityAlliance\Contao\Bindings\Events\Widget\GetAttributesFromDcaEvent;
@@ -35,6 +36,7 @@ use ContaoCommunityAlliance\DcGeneral\DataDefinition\ContainerInterface;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\Definition\Properties\PropertyInterface;
 use ContaoCommunityAlliance\DcGeneral\EnvironmentInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Widget Builder to build Contao frontend widgets.
@@ -52,13 +54,22 @@ class DefaultWidgetBuilder
     private RequestScopeDeterminator $scopeDeterminator;
 
     /**
+     * The translator.
+     *
+     * @var TranslatorInterface
+     */
+    private TranslatorInterface $translator;
+
+    /**
      * DefaultWidgetBuilder constructor.
      *
      * @param RequestScopeDeterminator $scopeDeterminator The request scope determinator.
+     * @param TranslatorInterface      $translator        The translator.
      */
-    public function __construct(RequestScopeDeterminator $scopeDeterminator)
+    public function __construct(RequestScopeDeterminator $scopeDeterminator, TranslatorInterface $translator)
     {
         $this->scopeDeterminator = $scopeDeterminator;
+        $this->translator        = $translator;
     }
 
     /**
@@ -159,12 +170,18 @@ class DefaultWidgetBuilder
             $propExtra['class'] = $this->addCssClass($propExtra['class'], $propExtra['tl_class']);
         }
 
+        // If no description present, pass as string instead of array.
+        $label = $this->translator->trans($property->getLabel(), [], $defName);
+        if ('' !== $description = $property->getDescription()) {
+            $label = [
+                $label,
+                $this->translator->trans($description, [], $defName),
+            ];
+        }
+
         $arrConfig = [
             'inputType' => $property->getWidgetType(),
-            'label'     => [
-                $property->getLabel(),
-                $property->getDescription()
-            ],
+            'label'     => $label,
             'options'   => $this->getOptionsForWidget($environment, $property, $model),
             'eval'      => $propExtra,
         ];

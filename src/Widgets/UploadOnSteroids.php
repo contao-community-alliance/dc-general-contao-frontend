@@ -22,6 +22,7 @@
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Widgets;
 
 use Contao\Controller;
+use Contao\CoreBundle\Image\ImageFactory;
 use Contao\CoreBundle\Slug\Slug as SlugGenerator;
 use Contao\CoreBundle\Framework\Adapter;
 use Contao\Dbafs;
@@ -34,8 +35,9 @@ use Contao\System;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
-use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
@@ -93,46 +95,46 @@ class UploadOnSteroids extends FormFileUpload
     protected $strPrefix = 'widget widget-upload widget-upload-on-steroids';
 
     /**
-     * Image sizes.
+     * Image sizes as serialisized string.
      *
-     * @var array
+     * @var string
      */
-    protected $imageSize;
+    protected string $imageSize;
 
     /**
      * The translator.
      *
-     * @var TranslatorInterface
+     * @var TranslatorInterface|null
      */
-    protected $translator;
+    protected ?TranslatorInterface $translator = null;
 
     /**
      * The input provider.
      *
-     * @var Adapter|Input
+     * @var Adapter<Input>
      */
-    protected $inputProvider;
+    protected ?Adapter $inputProvider = null;
 
     /**
      * The file model.
      *
-     * @var Adapter|FilesModel
+     * @var Adapter<FilesModel>|null
      */
-    private Adapter|FilesModel $filesModel;
+    private ?Adapter $filesModel = null;
 
     /**
      * The filesystem.
      *
-     * @var Filesystem
+     * @var Filesystem|null
      */
-    private Filesystem $filesystem;
+    private ?Filesystem $filesystem = null;
 
     /**
      * The slug generator.
      *
-     * @var SlugGenerator
+     * @var SlugGenerator|null
      */
-    private SlugGenerator $slugGenerator;
+    private ?SlugGenerator $slugGenerator = null;
 
     /**
      * {@inheritDoc}
@@ -175,7 +177,6 @@ class UploadOnSteroids extends FormFileUpload
         $this->addIsDeselectable();
         $this->addIsMultiple();
         $this->addShowThumbnail();
-        $this->getImageSize();
         $this->addFiles($this->sortBy);
 
         $this->value = \implode(',', \array_map('\Contao\StringUtil::binToUuid', (array) $this->value));
@@ -230,7 +231,6 @@ class UploadOnSteroids extends FormFileUpload
             $this->uploadFolder = $newUploadFolder?->uuid ?? '';
         }
 
-        /** @psalm-suppress DeprecatedMethod */
         $this->validateSingleUpload();
         $this->validateMultipleUpload();
         $this->deselectFile($inputName);
@@ -244,8 +244,6 @@ class UploadOnSteroids extends FormFileUpload
      *
      * @throws \Exception
      * @SuppressWarnings(PHPMD.Superglobals)
-     *
-     * @deprecated Use multiple upload.
      */
     private function validateSingleUpload(): void
     {
@@ -355,20 +353,19 @@ class UploadOnSteroids extends FormFileUpload
         if (
             !$this->deselect
             || $this->hasErrors()
-            || !($post = $this->inputProvider()->post($inputName))
-            || !isset($post['reset'][0])
+            || [] === ($post = (array) ($this->getCurrentRequest()?->request->get($inputName . '__reset') ?? []))
         ) {
             return;
         }
 
-        if (!$this->multiple && (StringUtil::binToUuid($this->value) === $post['reset'][0])) {
+        if (!$this->multiple && (StringUtil::binToUuid($this->value) === $post[0])) {
             $this->value = '';
 
             return;
         }
 
         $values     = \array_map('\Contao\StringUtil::binToUuid', (array) $this->value);
-        $diffValues = \array_values(\array_diff($values, $post['reset']));
+        $diffValues = \array_values(\array_diff($values, $post));
 
         $this->value = \array_map('\Contao\StringUtil::uuidToBin', $diffValues);
     }
@@ -388,32 +385,30 @@ class UploadOnSteroids extends FormFileUpload
         if (
             !$this->delete
             || $this->hasErrors()
-            || !($post = $this->inputProvider()->post($inputName))
-            || !isset($post['delete'][0])
+            || [] === ($post = (array) ($this->getCurrentRequest()?->request->get($inputName . '__delete') ?? []))
         ) {
             return;
         }
 
-        if (!$this->multiple && (StringUtil::binToUuid($this->value) === $post['delete'][0])) {
-            $this->value = '';
-
+        if (!$this->multiple && (StringUtil::binToUuid($this->value) === $post[0])) {
             /** @psalm-suppress InternalMethod - Class ContaoFramework is internal, not the getAdapter() method. */
             $file = $this->filesModel()->findByUuid($this->value);
             if (null !== $file) {
-                $this->filesystem->remove($file->path);
+                $this->filesystem()->remove($file->path);
                 $file->delete();
                 Dbafs::deleteResource($file->path);
             }
+            $this->value = '';
 
             return;
         }
 
         $values     = \array_map('\Contao\StringUtil::binToUuid', (array) $this->value);
-        $diffValues = \array_values(\array_diff($values, $post['delete']));
+        $diffValues = \array_values(\array_diff($values, $post));
 
-        foreach ($post['delete'] as $delete) {
+        foreach ($post as $delete) {
             /** @psalm-suppress InternalMethod - Class ContaoFramework is internal, not the getAdapter() method. */
-            $file = $this->filesModel()->findByUuid(StringUtil::uuidToBin($delete));
+            $file = $this->filesModel()->findByUuid(StringUtil::uuidToBin((string) $delete));
             if (null === $file) {
                 continue;
             }
@@ -499,9 +494,7 @@ class UploadOnSteroids extends FormFileUpload
 
         /** @var Connection $connection */
         $connection = self::getContainer()->get('database_connection');
-
-        $platform = $connection->getDatabasePlatform();
-        $builder  = $connection->createQueryBuilder();
+        $builder    = $connection->createQueryBuilder();
 
         switch ($sortBy) {
             case 'name_desc':
@@ -523,24 +516,24 @@ class UploadOnSteroids extends FormFileUpload
 
         $builder
             ->select(
-                $platform->quoteIdentifier('id'),
-                $platform->quoteIdentifier('pid'),
-                $platform->quoteIdentifier('tstamp'),
-                $platform->quoteIdentifier('uuid'),
-                $platform->quoteIdentifier('type'),
-                $platform->quoteIdentifier('path'),
-                $platform->quoteIdentifier('extension'),
-                $platform->quoteIdentifier('hash'),
-                $platform->quoteIdentifier('found'),
-                $platform->quoteIdentifier('name'),
-                $platform->quoteIdentifier('importantPartX'),
-                $platform->quoteIdentifier('importantPartY'),
-                $platform->quoteIdentifier('importantPartWidth'),
-                $platform->quoteIdentifier('importantPartHeight'),
-                $platform->quoteIdentifier('meta')
+                't.id',
+                't.pid',
+                't.tstamp',
+                't.uuid',
+                't.type',
+                't.path',
+                't.extension',
+                't.hash',
+                't.found',
+                't.name',
+                't.importantPartX',
+                't.importantPartY',
+                't.importantPartWidth',
+                't.importantPartHeight',
+                't.meta'
             )
-            ->from($platform->quoteIdentifier('tl_files'))
-            ->where($builder->expr()->in($platform->quoteIdentifier('uuid'), ':uuids'))
+            ->from('tl_files', 't')
+            ->where($builder->expr()->in('t.uuid', ':uuids'))
             ->setParameter('uuids', (array) $this->value, ArrayParameterType::STRING);
 
         $statement = $builder->executeQuery();
@@ -560,12 +553,14 @@ class UploadOnSteroids extends FormFileUpload
         $container  = System::getContainer();
         $projectDir = $container->getParameter('kernel.project_dir');
         assert(\is_string($projectDir));
+        $imageFactory = $container->get('contao.image.image_factory');
+        assert($imageFactory instanceof ImageFactory);
         foreach ($statement->fetchAllAssociative() as $file) {
             if (null === ($objFile = FilesModel::findByUuid($file['uuid']))) {
                 continue;
             }
-            $src              = $container->get('contao.image.image_factory')
-                ?->create($projectDir . '/' . rawurldecode($objFile->path), $this->imageSize)
+            $src              = $imageFactory
+                ->create($projectDir . '/' . rawurldecode($objFile->path), $this->imageSize)
                 ->getUrl($projectDir);
             $objThumbnailFile = new File(rawurldecode($src));
 
@@ -646,23 +641,28 @@ class UploadOnSteroids extends FormFileUpload
         $this->addAttribute('multiple', 'multiple');
     }
 
-    /**
-     * Get the input provider.
-     *
-     * @return Adapter|Input
-     */
-    private function inputProvider(): Input|Adapter
+    private function getCurrentRequest(): ?Request
     {
-        return $this->inputProvider;
+        $requestStack = \Contao\System::getContainer()->get('request_stack');
+        if (!$requestStack instanceof RequestStack) {
+            return null;
+        }
+        return $requestStack->getCurrentRequest();
     }
 
     /**
      * Get the files model.
      *
-     * @return Adapter|FilesModel
+     * @return Adapter<FilesModel>
      */
-    private function filesModel(): FilesModel|Adapter
+    private function filesModel(): Adapter
     {
+        if (null === $this->filesModel) {
+            $filesModel = self::getContainer()->get('contao.framework')?->getAdapter(FilesModel::class);
+            assert($filesModel instanceof Adapter);
+            $this->filesModel = $filesModel;
+        }
+
         return $this->filesModel;
     }
 
@@ -673,6 +673,12 @@ class UploadOnSteroids extends FormFileUpload
      */
     private function filesystem(): Filesystem
     {
+        if (null === $this->filesystem) {
+            $filesystem = self::getContainer()->get('filesystem');
+            assert($filesystem instanceof Filesystem);
+            $this->filesystem = $filesystem;
+        }
+
         return $this->filesystem;
     }
 
@@ -683,6 +689,12 @@ class UploadOnSteroids extends FormFileUpload
      */
     private function slugGenerator(): SlugGenerator
     {
+        if (null === $this->slugGenerator) {
+            $slugGenerator = System::getContainer()->get('contao.slug');
+            assert($slugGenerator instanceof SlugGenerator);
+            $this->slugGenerator = $slugGenerator;
+        }
+
         return $this->slugGenerator;
     }
 
@@ -703,16 +715,12 @@ class UploadOnSteroids extends FormFileUpload
      */
     private function translator(): TranslatorInterface
     {
-        return $this->translator;
-    }
+        if (null === $this->translator) {
+            $translator = self::getContainer()->get('translator');
+            assert($translator instanceof TranslatorInterface);
+            $this->translator = $translator;
+        }
 
-    /**
-     * Get the image sizes.
-     *
-     * @return void
-     */
-    private function getImageSize(): void
-    {
-        $this->imageSize = StringUtil::deserialize($this->imageSize, true);
+        return $this->translator;
     }
 }
