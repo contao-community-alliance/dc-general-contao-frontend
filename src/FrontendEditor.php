@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015-2020 Contao Community Alliance.
+ * (c) 2015-2024 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -14,7 +14,8 @@
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
  * @author     Sven Baumann <baumann.sv@gmail.com>
- * @copyright  2015-2020 Contao Community Alliance.
+ * @author     Ingolf Steinhardt <info@e-spin.de>
+ * @copyright  2015-2024 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
@@ -26,6 +27,7 @@ use ContaoCommunityAlliance\DcGeneral\DcGeneralEvents;
 use ContaoCommunityAlliance\DcGeneral\EnvironmentInterface;
 use ContaoCommunityAlliance\DcGeneral\Event\ActionEvent;
 use ContaoCommunityAlliance\DcGeneral\Factory\DcGeneralFactory;
+use ContaoCommunityAlliance\DcGeneral\InputProviderInterface;
 use ContaoCommunityAlliance\Translator\TranslatorInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
@@ -39,27 +41,26 @@ class FrontendEditor
      *
      * @var EventDispatcherInterface
      */
-    private $dispatcher;
+    private EventDispatcherInterface $dispatcher;
 
     /**
      * The translator.
      *
      * @var TranslatorInterface
      */
-    private $translator;
+    private TranslatorInterface $translator;
 
     /**
      * The already populated environments.
      *
      * @var EnvironmentInterface[]
      */
-    private static $environments = [];
+    private static array $environments = [];
 
     /**
      * Create a new instance.
      *
      * @param EventDispatcherInterface $dispatcher The event dispatcher.
-     *
      * @param TranslatorInterface      $translator The translator.
      */
     public function __construct(EventDispatcherInterface $dispatcher, TranslatorInterface $translator)
@@ -72,7 +73,6 @@ class FrontendEditor
      * Create a frontend editor for the given table.
      *
      * @param string $containerName The name of the data container to edit.
-     *
      * @param string $defaultAction The default action to issue, if none provided by the input provider.
      *
      * @return string
@@ -80,22 +80,28 @@ class FrontendEditor
     public function editFor($containerName, $defaultAction = 'showAll'): string
     {
         $environment = $this->createDcGeneral($containerName);
-        $actionName  = $environment->getInputProvider()->getParameter('act') ?: $defaultAction;
-        $action      = new Action($actionName);
-        $event       = new ActionEvent($environment, $action);
+
+        $inputProvider = $environment->getInputProvider();
+        assert($inputProvider instanceof InputProviderInterface);
+
+        $actionName = $inputProvider->getParameter('act') ?: $defaultAction;
+        assert(\is_string($actionName));
+
+        $action = new Action($actionName);
+        $event  = new ActionEvent($environment, $action);
 
         // If the action parameter is not set, it is set. So that the action parameter can be used everywhere.
-        if (false === ($hasActionName = $environment->getInputProvider()->hasParameter('act'))) {
-            $environment->getInputProvider()->setParameter('act', $actionName);
+        if (false === ($hasActionName = $inputProvider->hasParameter('act'))) {
+            $inputProvider->setParameter('act', $actionName);
         }
 
-        $this->dispatcher->dispatch(DcGeneralEvents::ACTION, $event);
+        $this->dispatcher->dispatch($event, DcGeneralEvents::ACTION);
 
         if (false === $hasActionName) {
-            $environment->getInputProvider()->unsetParameter('act');
+            $inputProvider->unsetParameter('act');
         }
 
-        if (!$result = $event->getResponse()) {
+        if (null === ($result = $event->getResponse())) {
             return 'Action ' . $action->getName() . ' is not supported yet.';
         }
 

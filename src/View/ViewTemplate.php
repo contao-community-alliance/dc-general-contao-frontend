@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015 Contao Community Alliance.
+ * (c) 2015-2024 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,27 +12,31 @@
  *
  * @package    contao-community-alliance/dc-general-contao-frontend
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
- * @copyright  2015 Contao Community Alliance.
+ * @author     Ingolf Steinhardt <info@e-spin.de>
+ * @copyright  2015-2024 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
 
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View;
 
+use Contao\BackendTemplate;
 use ContaoCommunityAlliance\DcGeneral\View\ViewTemplateInterface;
 use ContaoCommunityAlliance\Translator\TranslatorInterface;
 
 /**
  * This class is used for the contao frontend view as template.
+ *
+ * @psalm-suppress PropertyNotSetInConstructor
  */
-class ViewTemplate extends \BackendTemplate implements ViewTemplateInterface, TranslatorInterface
+class ViewTemplate extends BackendTemplate implements ViewTemplateInterface, TranslatorInterface
 {
     /**
      * The translator.
      *
      * @var TranslatorInterface
      */
-    protected $translator;
+    protected TranslatorInterface $translator;
 
     /**
      * Get the translator.
@@ -61,9 +65,9 @@ class ViewTemplate extends \BackendTemplate implements ViewTemplateInterface, Tr
     /**
      * {@inheritDoc}
      */
-    public function setData($data)
+    public function setData($arrData)
     {
-        parent::setData($data);
+        parent::setData($arrData);
 
         return $this;
     }
@@ -91,11 +95,7 @@ class ViewTemplate extends \BackendTemplate implements ViewTemplateInterface, Tr
      */
     public function translate($string, $domain = null, array $parameters = [], $locale = null)
     {
-        if ($this->translator) {
-            return $this->translator->translate($string, $domain, $parameters, $locale);
-        }
-
-        return $string;
+        return $this->translator->translate($string, $domain, $parameters, $locale);
     }
 
     /**
@@ -103,10 +103,33 @@ class ViewTemplate extends \BackendTemplate implements ViewTemplateInterface, Tr
      */
     public function translatePluralized($string, $number, $domain = null, array $parameters = [], $locale = null)
     {
-        if ($this->translator) {
-            return $this->translator->translatePluralized($string, $number, $domain, $parameters, $locale);
-        }
-
-        return $string;
+        return $this->translator->translatePluralized($string, $number, $domain, $parameters, $locale);
     }
+
+    // @codingStandardsIgnoreStart
+    /**
+     * {@inheritDoc}
+     */
+    public function getData()
+    {
+        return parent::getData();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function parse()
+    {
+        return parent::parse();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function output()
+    {
+        /** @psalm-suppress DeprecatedMethod */
+        parent::output();
+    }
+    // @codingStandardsIgnoreEnd
 }

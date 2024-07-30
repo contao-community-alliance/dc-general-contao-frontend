@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2016-2022 Contao Community Alliance.
+ * (c) 2016-2024 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -13,7 +13,7 @@
  * @package   contao-community-alliance/dc-general-contao-frontend
  * @author    Sven Baumann <baumann.sv@gmail.com>
  * @author    Ingolf Steinhardt <info@e-spin.de>
- * @copyright 2016-2022 Contao Community Alliance.
+ * @copyright 2016-2024 Contao Community Alliance.
  * @license   https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  *
  * @filesource
@@ -22,6 +22,7 @@
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Widgets;
 
 use Contao\Controller;
+use Contao\CoreBundle\Image\ImageFactory;
 use Contao\CoreBundle\Slug\Slug as SlugGenerator;
 use Contao\CoreBundle\Framework\Adapter;
 use Contao\Dbafs;
@@ -31,8 +32,12 @@ use Contao\FormFileUpload;
 use Contao\Input;
 use Contao\StringUtil;
 use Contao\System;
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Exception;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
@@ -60,6 +65,11 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * @property string  sortBy
  *
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ *
+ * @psalm-suppress PropertyNotSetInConstructor
+ * @psalm-suppress UndefinedThisPropertyFetch
+ * @psalm-suppress UndefinedThisPropertyAssignment
  */
 class UploadOnSteroids extends FormFileUpload
 {
@@ -85,92 +95,93 @@ class UploadOnSteroids extends FormFileUpload
     protected $strPrefix = 'widget widget-upload widget-upload-on-steroids';
 
     /**
-     * Image sizes.
+     * Image sizes as serialisized string.
      *
-     * @var array
+     * @var string
      */
-    protected $imageSize;
+    protected string $imageSize;
 
     /**
      * The translator.
      *
-     * @var TranslatorInterface
+     * @var TranslatorInterface|null
      */
-    protected TranslatorInterface $translator;
+    protected ?TranslatorInterface $translator = null;
 
     /**
      * The input provider.
      *
-     * @var Adapter|Input
+     * @var Adapter<Input>
      */
-    protected $inputProvider;
+    protected ?Adapter $inputProvider = null;
 
     /**
      * The file model.
      *
-     * @var Adapter|FilesModel
+     * @var Adapter<FilesModel>|null
      */
-    private $filesModel;
+    private ?Adapter $filesModel = null;
 
     /**
      * The filesystem.
      *
-     * @var Filesystem
+     * @var Filesystem|null
      */
-    private $filesystem;
+    private ?Filesystem $filesystem = null;
 
     /**
      * The slug generator.
      *
-     * @var SlugGenerator
+     * @var SlugGenerator|null
      */
-    private $slugGenerator;
+    private ?SlugGenerator $slugGenerator = null;
 
     /**
      * {@inheritDoc}
      */
-    public function __set($key, $value)
+    public function __set($strKey, $varValue)
     {
-        if (\in_array(
-            $key,
-            [
-                'deselect',
-                'delete',
-                'extendFolder',
-                'normalizeExtendFolder',
-                'normalizeFilename',
-                'prefixFilename',
-                'postfixFilename',
-                'files',
-                'showThumbnail',
-                'multiple',
-                'imageSize',
-                'sortBy'
-            ]
-        )) {
-            $this->arrConfiguration[$key] = $value;
+        if (
+            \in_array(
+                $strKey,
+                [
+                    'deselect',
+                    'delete',
+                    'extendFolder',
+                    'normalizeExtendFolder',
+                    'normalizeFilename',
+                    'prefixFilename',
+                    'postfixFilename',
+                    'files',
+                    'showThumbnail',
+                    'multiple',
+                    'imageSize',
+                    'sortBy'
+                ]
+            )
+        ) {
+            $this->arrConfiguration[$strKey] = $varValue;
 
             return;
         }
 
-        parent::__set($key, $value);
+        parent::__set($strKey, $varValue);
     }
 
     /**
      * {@inheritDoc}
      */
-    public function parse($attributes = null)
+    public function parse($arrAttributes = null)
     {
         $this->addIsDeletable();
         $this->addIsDeselectable();
         $this->addIsMultiple();
         $this->addShowThumbnail();
-        $this->getImageSize();
         $this->addFiles($this->sortBy);
 
         $this->value = \implode(',', \array_map('\Contao\StringUtil::binToUuid', (array) $this->value));
 
-        return parent::parse($attributes);
+        return parent::parse($arrAttributes);
     }
 
     /**
@@ -182,27 +193,28 @@ class UploadOnSteroids extends FormFileUpload
      */
     public function parseFilename(string $filename): string
     {
-        if (empty($filename) || !\is_string($filename)) {
+        if (empty($filename)) {
             return $filename;
         }
 
-        return $this->normalizeFilename($filename);
+        return $this->convertFilename($filename);
     }
 
     /**
      * {@inheritDoc}
      */
-    public function validate()
+    public function validate(): void
     {
         $inputName = $this->name;
 
-        if ($this->normalizeExtendFolder) {
+        if ($this->normalizeExtendFolder && $this->extendFolder) {
             $this->extendFolder = $this->slugGenerator()->generate($this->extendFolder, $this->getSlugOptions());
         }
 
         if ($this->extendFolder) {
+            /** @psalm-suppress InternalMethod - Class ContaoFramework is internal, not the getAdapter() method. */
             $uploadFolder     = $this->filesModel()->findByUuid($this->uploadFolder);
-            $uploadFolderPath = $uploadFolder->path . DIRECTORY_SEPARATOR . $this->extendFolder;
+            $uploadFolderPath = (string) $uploadFolder?->path . DIRECTORY_SEPARATOR . $this->extendFolder;
 
 
             $newUploadFolder = null;
@@ -211,11 +223,12 @@ class UploadOnSteroids extends FormFileUpload
                 $newUploadFolder = Dbafs::addResource($uploadFolderPath);
             }
 
-            if (!$newUploadFolder) {
+            if (null === $newUploadFolder) {
+                /** @psalm-suppress InternalMethod - Class ContaoFramework is internal, not the getAdapter() method. */
                 $newUploadFolder = $this->filesModel()->findByPath($uploadFolderPath);
             }
 
-            $this->uploadFolder = $newUploadFolder->uuid;
+            $this->uploadFolder = $newUploadFolder?->uuid ?? '';
         }
 
         $this->validateSingleUpload();
@@ -229,6 +242,7 @@ class UploadOnSteroids extends FormFileUpload
      *
      * @return void
      *
+     * @throws \Exception
      * @SuppressWarnings(PHPMD.Superglobals)
      */
     private function validateSingleUpload(): void
@@ -238,7 +252,7 @@ class UploadOnSteroids extends FormFileUpload
         }
 
         $inputName                  = $this->name;
-        $_FILES[$inputName]['name'] = $this->parseFilename($_FILES[$inputName]['name']);
+        $_FILES[$inputName]['name'] = $this->parseFilename($_FILES[$inputName]['name'] ?? '');
 
         parent::validate();
 
@@ -259,6 +273,7 @@ class UploadOnSteroids extends FormFileUpload
      *
      * @return void
      *
+     * @throws \Exception
      * @SuppressWarnings(PHPMD.Superglobals)
      */
     private function validateMultipleUpload(): void
@@ -268,7 +283,7 @@ class UploadOnSteroids extends FormFileUpload
         }
 
         $inputName = $this->name;
-        $values    = \array_map('\Contao\StringUtil::binToUuid', $this->value);
+        $values    = \array_map('\Contao\StringUtil::binToUuid', (array) $this->value);
 
         $files      = [];
         $inputFiles = $this->getMultipleUploadedFiles();
@@ -317,7 +332,7 @@ class UploadOnSteroids extends FormFileUpload
 
         $files = [];
         foreach ($_FILES[$this->name] as $propertyName => $values) {
-            foreach ($values as $key => $value) {
+            foreach ((array) $values as $key => $value) {
                 $files[$key][$propertyName] = $value;
             }
         }
@@ -328,28 +343,29 @@ class UploadOnSteroids extends FormFileUpload
     /**
      * Deselect the file, if is mark for deselect.
      *
-     * @param string $inputName The input nanme.
+     * @param string $inputName The input name.
      *
      * @return void
      */
-    private function deselectFile(string $inputName)
+    private function deselectFile(string $inputName): void
     {
-        if (!$this->deselect
+        /** @psalm-suppress InternalMethod - Class ContaoFramework is internal, not the getAdapter() method. */
+        if (
+            !$this->deselect
             || $this->hasErrors()
-            || !($post = $this->inputProvider()->post($inputName))
-            || !isset($post['reset'][0])
+            || [] === ($post = (array) ($this->getCurrentRequest()?->request->get($inputName . '__reset') ?? []))
         ) {
             return;
         }
 
-        if (!$this->multiple && (StringUtil::binToUuid($this->value) === $post['reset'][0])) {
+        if (!$this->multiple && (StringUtil::binToUuid($this->value) === $post[0])) {
             $this->value = '';
 
             return;
         }
 
-        $values     = \array_map('\Contao\StringUtil::binToUuid', $this->value);
-        $diffValues = \array_values(\array_diff($values, $post['reset']));
+        $values     = \array_map('\Contao\StringUtil::binToUuid', (array) $this->value);
+        $diffValues = \array_values(\array_diff($values, $post));
 
         $this->value = \array_map('\Contao\StringUtil::uuidToBin', $diffValues);
     }
@@ -363,36 +379,37 @@ class UploadOnSteroids extends FormFileUpload
      *
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
-    private function deleteFile(string $inputName)
+    private function deleteFile(string $inputName): void
     {
-        if (!$this->delete
+        /** @psalm-suppress InternalMethod - Class ContaoFramework is internal, not the getAdapter() method. */
+        if (
+            !$this->delete
             || $this->hasErrors()
-            || !($post = $this->inputProvider()->post($inputName))
-            || !isset($post['delete'][0])
+            || [] === ($post = (array) ($this->getCurrentRequest()?->request->get($inputName . '__delete') ?? []))
         ) {
             return;
         }
 
-        if (!$this->multiple && (StringUtil::binToUuid($this->value) === $post['delete'][0])) {
-            $this->value = '';
-
+        if (!$this->multiple && (StringUtil::binToUuid($this->value) === $post[0])) {
+            /** @psalm-suppress InternalMethod - Class ContaoFramework is internal, not the getAdapter() method. */
             $file = $this->filesModel()->findByUuid($this->value);
-            if ($file) {
-                $this->filesystem->remove($file->path);
+            if (null !== $file) {
+                $this->filesystem()->remove($file->path);
                 $file->delete();
+                Dbafs::deleteResource($file->path);
             }
-
-            Dbafs::deleteResource($file->path);
+            $this->value = '';
 
             return;
         }
 
-        $values     = \array_map('\Contao\StringUtil::binToUuid', $this->value);
-        $diffValues = \array_values(\array_diff($values, $post['delete']));
+        $values     = \array_map('\Contao\StringUtil::binToUuid', (array) $this->value);
+        $diffValues = \array_values(\array_diff($values, $post));
 
-        foreach ($post['delete'] as $delete) {
-            $file = $this->filesModel()->findByUuid(StringUtil::uuidToBin($delete));
-            if (!$file) {
+        foreach ($post as $delete) {
+            /** @psalm-suppress InternalMethod - Class ContaoFramework is internal, not the getAdapter() method. */
+            $file = $this->filesModel()->findByUuid(StringUtil::uuidToBin((string) $delete));
+            if (null === $file) {
                 continue;
             }
 
@@ -405,27 +422,24 @@ class UploadOnSteroids extends FormFileUpload
     }
 
     /**
-     * Normalize the filename.
+     * Convert the filename.
      *
      * @param string $filename The filename.
      *
      * @return string
      */
-    private function normalizeFilename(string $filename): string
+    private function convertFilename(string $filename): string
     {
-        if (!$this->normalizeFilename) {
-            return $filename;
+        $fileInfo  = \pathinfo($filename);
+        $extension = $fileInfo['extension'] ?? '';
+        $filename  = $fileInfo['filename'] ?? '';
+
+        if ($this->normalizeFilename) {
+            $extension = $this->slugGenerator()->generate($extension, $this->getSlugOptions());
+            $filename  = $this->slugGenerator()->generate($filename, $this->getSlugOptions());
         }
 
-        $fileInfo = \pathinfo($filename);
-
-        $currentExtension   = $fileInfo['extension'];
-        $normalizeExtension = $this->slugGenerator()->generate($currentExtension, $this->getSlugOptions());
-
-        $currentFilename   = $fileInfo['filename'];
-        $normalizeFilename = $this->slugGenerator()->generate($currentFilename, $this->getSlugOptions());
-
-        return $this->preOrPostFixFilename($normalizeFilename) . '.' . $normalizeExtension;
+        return $this->preOrPostFixFilename($filename) . '.' . $extension;
     }
 
     /**
@@ -441,12 +455,21 @@ class UploadOnSteroids extends FormFileUpload
             return $filename;
         }
 
-        $prefix  = $this->prefixFilename
-            ? $this->slugGenerator()->generate($this->prefixFilename, $this->getSlugOptions())
-            : '';
-        $postfix = $this->postfixFilename
-            ? $this->slugGenerator()->generate($this->postfixFilename, $this->getSlugOptions())
-            : '';
+        // We save the default delimiter '-' at prefix and postfix
+        // see https://github.com/ausi/slug-generator/issues/34.
+        $prefix = $this->prefixFilename;
+        if ($this->prefixFilename && $this->normalizeFilename) {
+            $prefix = \str_repeat('-', \strspn($this->prefixFilename, '-')) .
+                      $this->slugGenerator()->generate($this->prefixFilename, $this->getSlugOptions()) .
+                      \str_repeat('-', \strspn(\strrev($this->prefixFilename), '-'));
+        }
+
+        $postfix = $this->postfixFilename;
+        if ($this->postfixFilename && $this->normalizeFilename) {
+            $postfix = \str_repeat('-', \strspn($this->postfixFilename, '-')) .
+                       $this->slugGenerator()->generate($this->postfixFilename, $this->getSlugOptions()) .
+                       \str_repeat('-', \strspn(\strrev($this->postfixFilename), '-'));
+        }
 
         return $prefix . $filename . $postfix;
     }
@@ -458,21 +481,20 @@ class UploadOnSteroids extends FormFileUpload
      *
      * @return void
      *
+     * @throws Exception
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
-    private function addFiles($sortBy)
+    private function addFiles($sortBy): void
     {
+        $this->files = [];
+
         if (empty($this->value)) {
-            $this->files = null;
             return;
         }
 
         /** @var Connection $connection */
         $connection = self::getContainer()->get('database_connection');
-
-        $platform = $connection->getDatabasePlatform();
-
-        $builder = $connection->createQueryBuilder();
+        $builder    = $connection->createQueryBuilder();
 
         switch ($sortBy) {
             case 'name_desc':
@@ -494,41 +516,50 @@ class UploadOnSteroids extends FormFileUpload
 
         $builder
             ->select(
-                $platform->quoteIdentifier('id'),
-                $platform->quoteIdentifier('pid'),
-                $platform->quoteIdentifier('tstamp'),
-                $platform->quoteIdentifier('uuid'),
-                $platform->quoteIdentifier('type'),
-                $platform->quoteIdentifier('path'),
-                $platform->quoteIdentifier('extension'),
-                $platform->quoteIdentifier('hash'),
-                $platform->quoteIdentifier('found'),
-                $platform->quoteIdentifier('name'),
-                $platform->quoteIdentifier('importantPartX'),
-                $platform->quoteIdentifier('importantPartY'),
-                $platform->quoteIdentifier('importantPartWidth'),
-                $platform->quoteIdentifier('importantPartHeight'),
-                $platform->quoteIdentifier('meta')
+                't.id',
+                't.pid',
+                't.tstamp',
+                't.uuid',
+                't.type',
+                't.path',
+                't.extension',
+                't.hash',
+                't.found',
+                't.name',
+                't.importantPartX',
+                't.importantPartY',
+                't.importantPartWidth',
+                't.importantPartHeight',
+                't.meta'
             )
-            ->from($platform->quoteIdentifier('tl_files'))
-            ->where($builder->expr()->in($platform->quoteIdentifier('uuid'), ':uuids'))
-            ->setParameter('uuids', (array) $this->value, Connection::PARAM_STR_ARRAY);
+            ->from('tl_files', 't')
+            ->where($builder->expr()->in('t.uuid', ':uuids'))
+            ->setParameter('uuids', (array) $this->value, ArrayParameterType::STRING);
 
-        $statement = $builder->execute();
+        $statement = $builder->executeQuery();
         if (!$statement->rowCount()) {
             return;
         }
 
+        // Generate simple file list.
         if (!$this->showThumbnail) {
             $this->files = $statement->fetchAllAssociative();
+
+            return;
         }
 
+        // Generate file list with thumbnails.
         $fileList   = [];
         $container  = System::getContainer();
         $projectDir = $container->getParameter('kernel.project_dir');
+        assert(\is_string($projectDir));
+        $imageFactory = $container->get('contao.image.image_factory');
+        assert($imageFactory instanceof ImageFactory);
         foreach ($statement->fetchAllAssociative() as $file) {
-            $objFile          = FilesModel::findByUuid($file['uuid']);
-            $src              = $container->get('contao.image.image_factory')
+            if (null === ($objFile = FilesModel::findByUuid($file['uuid']))) {
+                continue;
+            }
+            $src              = $imageFactory
                 ->create($projectDir . '/' . rawurldecode($objFile->path), $this->imageSize)
                 ->getUrl($projectDir);
             $objThumbnailFile = new File(rawurldecode($src));
@@ -605,34 +636,31 @@ class UploadOnSteroids extends FormFileUpload
             return;
         }
 
-        $this->prefix .= $this->multiple ? ' is-multiple' : '';
+        $this->prefix .= ' is-multiple';
 
         $this->addAttribute('multiple', 'multiple');
     }
 
-    /**
-     * Get the input provider.
-     *
-     * @return Adapter|Input
-     */
-    private function inputProvider(): Adapter
+    private function getCurrentRequest(): ?Request
     {
-        if (!$this->inputProvider) {
-            $this->inputProvider = self::getContainer()->get('contao.framework')->getAdapter(Input::class);
+        $requestStack = \Contao\System::getContainer()->get('request_stack');
+        if (!$requestStack instanceof RequestStack) {
+            return null;
         }
-
-        return $this->inputProvider;
+        return $requestStack->getCurrentRequest();
     }
 
     /**
      * Get the files model.
      *
-     * @return Adapter|FilesModel
+     * @return Adapter<FilesModel>
      */
     private function filesModel(): Adapter
     {
-        if (!$this->filesModel) {
-            $this->filesModel = self::getContainer()->get('contao.framework')->getAdapter(FilesModel::class);
+        if (null === $this->filesModel) {
+            $filesModel = self::getContainer()->get('contao.framework')?->getAdapter(FilesModel::class);
+            assert($filesModel instanceof Adapter);
+            $this->filesModel = $filesModel;
         }
 
         return $this->filesModel;
@@ -643,10 +671,12 @@ class UploadOnSteroids extends FormFileUpload
      *
      * @return Filesystem
      */
-    private function filesystem()
+    private function filesystem(): Filesystem
     {
-        if (!$this->filesystem) {
-            $this->filesystem = self::getContainer()->get('filesystem');
+        if (null === $this->filesystem) {
+            $filesystem = self::getContainer()->get('filesystem');
+            assert($filesystem instanceof Filesystem);
+            $this->filesystem = $filesystem;
         }
 
         return $this->filesystem;
@@ -657,10 +687,12 @@ class UploadOnSteroids extends FormFileUpload
      *
      * @return SlugGenerator
      */
-    private function slugGenerator()
+    private function slugGenerator(): SlugGenerator
     {
-        if (!$this->slugGenerator) {
-            $this->slugGenerator = System::getContainer()->get('contao.slug');
+        if (null === $this->slugGenerator) {
+            $slugGenerator = System::getContainer()->get('contao.slug');
+            assert($slugGenerator instanceof SlugGenerator);
+            $this->slugGenerator = $slugGenerator;
         }
 
         return $this->slugGenerator;
@@ -683,20 +715,12 @@ class UploadOnSteroids extends FormFileUpload
      */
     private function translator(): TranslatorInterface
     {
-        if (!$this->filesystem) {
-            $this->filesystem = self::getContainer()->get('translator');
+        if (null === $this->translator) {
+            $translator = self::getContainer()->get('translator');
+            assert($translator instanceof TranslatorInterface);
+            $this->translator = $translator;
         }
 
-        return $this->filesystem;
-    }
-
-    /**
-     * Get the image sizes.
-     *
-     * @return void
-     */
-    private function getImageSize(): void
-    {
-        $this->imageSize = StringUtil::deserialize($this->imageSize, true);
+        return $this->translator;
     }
 }

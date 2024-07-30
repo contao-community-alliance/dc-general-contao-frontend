@@ -5,8 +5,7 @@
 <?php if ($this->label): ?>
     <label for="ctrl_<?= $this->id ?>"<?php if ($this->class): ?> class="<?= $this->class ?>"<?php endif; ?>>
         <?php if ($this->mandatory): ?>
-            <span class="invisible"><?= $this->mandatoryField ?> </span><?= $this->label ?><span
-                class="mandatory">*</span>
+            <span class="invisible"><?= $this->mandatoryField ?> </span><?= $this->label ?><span class="mandatory">*</span>
         <?php else: ?>
             <?= $this->label ?>
         <?php endif; ?>
@@ -18,7 +17,7 @@
         <ul id="files_<?= $this->id ?>" class="files">
             <?php /** @var stdClass $file */ ?>
             <?php foreach ($this->files as $key => $file): ?>
-                <li class="file-element ext-<?= $file['extension'] ?>">
+                <li class="file-element<?php if (!$this->showThumbnail): ?> download-element ext-<?= $file['extension'] ?><?php endif ?>">
                     <?php if ($this->showThumbnail): ?>
                         <?= sprintf(
                             '<img src="%s" width="%s" height="%s" alt="%s" itemprop="image">',
@@ -27,7 +26,7 @@
                             $file['thumbnail']['height'],
                             $file['name']
                         ) ?>
-                        <p class="file-name"><?= $file['name'] ?></p>
+                        <br><span class="file-name"><?= $file['name'] ?></span>
                     <?php else: ?>
                         <span class="file-name"><?= $file['name'] ?></span>
                     <?php endif; ?>
@@ -35,20 +34,16 @@
                     <div class="file-action">
                         <?php if ($this->deselect): ?>
                             <div class="file-reset">
-                                <label for="ctrl_reset_<?= $this->id ?>_<?= $key ?>"><?= $this->trans(
-                                        'MSC.reset'
-                                    ) ?></label>
-                                <input type="checkbox" name="<?= $this->name ?>[reset][]"
+                                <label for="ctrl_reset_<?= $this->id ?>_<?= $key ?>"><?= $this->trans('MSC.reset') ?></label>
+                                <input type="checkbox" name="<?= $this->name ?>__reset[]"
                                        id="ctrl_reset_<?= $this->id ?>_<?= $key ?>"
                                        value="<?= \Contao\StringUtil::binToUuid($file['uuid']) ?>">
                             </div>
                         <?php endif; ?>
                         <?php if ($this->delete): ?>
                             <div class="file-delete">
-                                <label for="ctrl_delete_<?= $this->id ?>_<?= $key ?>"><?= $this->trans(
-                                        'MSC.delete'
-                                    ) ?></label>
-                                <input type="checkbox" name="<?= $this->name ?>[delete][]"
+                                <label for="ctrl_delete_<?= $this->id ?>_<?= $key ?>"><?= $this->trans('MSC.delete') ?></label>
+                                <input type="checkbox" name="<?= $this->name ?>__delete[]"
                                        id="ctrl_delete_<?= $this->id ?>_<?= $key ?>"
                                        value="<?= \Contao\StringUtil::binToUuid($file['uuid']) ?>">
                             </div>
@@ -62,10 +57,10 @@
 <?php $this->endblock(); ?>
 
 <?php $this->block('field'); ?>
-<?php if ($this->hasErrors()): ?>
-    <p class="error"><?= $this->getErrorAsString() ?></p>
-<?php endif; ?>
-<input type="hidden" name="<?= $this->name ?><?= $this->multiple ? '[]' : '' ?>" value="<?= $this->value ?>">
-<input type="file" name="<?= $this->name ?><?= $this->multiple ? '[]' : '' ?>" id="ctrl_<?= $this->id ?>"
-       class="upload<?php if ($this->class): ?> <?= $this->class ?><?php endif; ?>"<?= $this->getAttributes() ?>>
+    <?php if ($this->hasErrors()): ?>
+        <p class="error"><?= $this->getErrorAsString() ?></p>
+    <?php endif; ?>
+    <input type="hidden" name="<?= $this->name ?><?= $this->multiple ? '[]' : '' ?>" value="<?= $this->value ?>">
+    <input type="file" name="<?= $this->name ?><?= $this->multiple ? '[]' : '' ?>" id="ctrl_<?= $this->id ?>"
+           class="upload<?php if ($this->class): ?> <?= $this->class ?><?php endif; ?>"<?= $this->getAttributes() ?>>
 <?php $this->endblock(); ?>
