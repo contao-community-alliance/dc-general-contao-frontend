@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015 Contao Community Alliance.
+ * (c) 2015-2024 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,13 +12,15 @@
  *
  * @package    contao-community-alliance/dc-general-contao-frontend
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
- * @copyright  2015 Contao Community Alliance.
+ * @author     Ingolf Steinhardt <info@e-spin.de>
+ * @copyright  2015-2024 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
 
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Event;
 
+use Contao\Widget;
 use ContaoCommunityAlliance\DcGeneral\Data\ModelInterface;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\Definition\Properties\PropertyInterface;
 use ContaoCommunityAlliance\DcGeneral\EnvironmentInterface;
@@ -39,17 +41,15 @@ class BuildWidgetEvent extends AbstractModelAwareEvent
     /**
      * The instantiated widget.
      *
-     * @var \Widget
+     * @var Widget|null
      */
-    protected $widget;
+    protected $widget = null;
 
     /**
      * Create a new event.
      *
      * @param EnvironmentInterface $environment The environment instance in use.
-     *
      * @param ModelInterface       $model       The model holding the data for the widget that shall be instantiated.
-     *
      * @param PropertyInterface    $property    The property for which the widget shall be instantiated.
      */
     public function __construct(
@@ -65,7 +65,7 @@ class BuildWidgetEvent extends AbstractModelAwareEvent
     /**
      * Stores the widget instance into the event.
      *
-     * @param \Widget $widget The widget instance.
+     * @param Widget|null $widget The widget instance.
      *
      * @return BuildWidgetEvent
      */
@@ -79,7 +79,7 @@ class BuildWidgetEvent extends AbstractModelAwareEvent
     /**
      * Retrieve the widget instance from the event.
      *
-     * @return \Widget
+     * @return Widget|null
      */
     public function getWidget()
     {

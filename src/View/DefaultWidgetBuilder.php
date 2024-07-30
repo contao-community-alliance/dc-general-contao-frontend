@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015-2022 Contao Community Alliance.
+ * (c) 2015-2024 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -14,13 +14,15 @@
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
  * @author     Ingolf Steinhardt <info@e-spin.de>
- * @copyright  2015-2022 Contao Community Alliance.
+ * @copyright  2015-2024 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
 
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View;
 
+use Contao\System;
+use Contao\Widget;
 use ContaoCommunityAlliance\Contao\Bindings\ContaoEvents;
 use ContaoCommunityAlliance\Contao\Bindings\Events\Widget\GetAttributesFromDcaEvent;
 use ContaoCommunityAlliance\DcGeneral\Contao\Compatibility\DcCompat;
@@ -30,30 +32,44 @@ use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\Event\GetPr
 use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\Event\ManipulateWidgetEvent;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Event\BuildWidgetEvent;
 use ContaoCommunityAlliance\DcGeneral\Data\ModelInterface;
+use ContaoCommunityAlliance\DcGeneral\DataDefinition\ContainerInterface;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\Definition\Properties\PropertyInterface;
 use ContaoCommunityAlliance\DcGeneral\EnvironmentInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Widget Builder to build Contao frontend widgets.
+ *
+ * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class DefaultWidgetBuilder
 {
-
     /**
      * The request scope determinator.
      *
      * @var RequestScopeDeterminator
      */
-    private $scopeDeterminator;
+    private RequestScopeDeterminator $scopeDeterminator;
+
+    /**
+     * The translator.
+     *
+     * @var TranslatorInterface
+     */
+    private TranslatorInterface $translator;
 
     /**
      * DefaultWidgetBuilder constructor.
      *
      * @param RequestScopeDeterminator $scopeDeterminator The request scope determinator.
+     * @param TranslatorInterface      $translator        The translator.
      */
-    public function __construct(RequestScopeDeterminator $scopeDeterminator)
+    public function __construct(RequestScopeDeterminator $scopeDeterminator, TranslatorInterface $translator)
     {
         $this->scopeDeterminator = $scopeDeterminator;
+        $this->translator        = $translator;
     }
 
     /**
@@ -79,12 +95,10 @@ class DefaultWidgetBuilder
      * Build a widget for a given property.
      *
      * @param EnvironmentInterface $environment The environment.
-     *
      * @param PropertyInterface    $property    The property.
-     *
      * @param ModelInterface       $model       The current model.
      *
-     * @return \Widget
+     * @return Widget|null
      *
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
@@ -94,11 +108,17 @@ class DefaultWidgetBuilder
         PropertyInterface $property,
         ModelInterface $model
     ) {
-        $dispatcher   = $environment->getEventDispatcher();
+        $dispatcher = $environment->getEventDispatcher();
+        assert($dispatcher instanceof EventDispatcherInterface);
+
         $propertyName = $property->getName();
         $propExtra    = $property->getExtra();
-        $defName      = $environment->getDataDefinition()->getName();
-        $strClass     = $this->getWidgetClass($property);
+
+        $dataDefinition = $environment->getDataDefinition();
+        assert($dataDefinition instanceof ContainerInterface);
+
+        $defName  = $dataDefinition->getName();
+        $strClass = $this->getWidgetClass($property);
 
         if (null === $strClass) {
             return null;
@@ -109,14 +129,16 @@ class DefaultWidgetBuilder
             ->setProperty($propertyName)
             ->setValue($model->getProperty($propertyName));
 
-        $dispatcher->dispatch($event,$event::NAME);
+        $dispatcher->dispatch($event, $event::NAME);
         $varValue = $event->getValue();
 
-        $propExtra['required']  = ($varValue == '') && !empty($propExtra['mandatory']);
+        $propExtra['required']  = ($varValue === '') && !empty($propExtra['mandatory']);
         $propExtra['tableless'] = true;
-        if (isset($propExtra['readonly'])
+        if (
+            isset($propExtra['readonly'])
             && $propExtra['readonly']
-            && \in_array($property->getWidgetType(), ['checkbox', 'select'], true)) {
+            && \in_array($property->getWidgetType(), ['checkbox', 'select'], true)
+        ) {
             $propExtra['disabled'] = true;
         }
 
@@ -148,15 +170,21 @@ class DefaultWidgetBuilder
             $propExtra['class'] = $this->addCssClass($propExtra['class'], $propExtra['tl_class']);
         }
 
-        $arrConfig = array(
+        // If no description present, pass as string instead of array.
+        $label = $this->translator->trans($property->getLabel(), [], $defName);
+        if ('' !== $description = $property->getDescription()) {
+            $label = [
+                $label,
+                $this->translator->trans($description, [], $defName),
+            ];
+        }
+
+        $arrConfig = [
             'inputType' => $property->getWidgetType(),
-            'label'     => array(
-                $property->getLabel(),
-                $property->getDescription()
-            ),
+            'label'     => $label,
             'options'   => $this->getOptionsForWidget($environment, $property, $model),
             'eval'      => $propExtra,
-        );
+        ];
 
         if (isset($propExtra['reference'])) {
             $arrConfig['reference'] = $propExtra['reference'];
@@ -181,6 +209,7 @@ class DefaultWidgetBuilder
         }
 
         $widget = new $strClass($preparedConfig, new DcCompat($environment, $model, $propertyName));
+        assert($widget instanceof Widget);
 
         $widget->currentRecord = $model->getId();
 
@@ -195,7 +224,7 @@ class DefaultWidgetBuilder
      *
      * @param PropertyInterface $property The property to get the widget class name for.
      *
-     * @return string
+     * @return class-string|null
      *
      * @SuppressWarnings(PHPMD.Superglobals)
      * @SuppressWarnings(PHPMD.CamelCaseVariableName)
@@ -206,8 +235,8 @@ class DefaultWidgetBuilder
             return null;
         }
 
-        $className = $GLOBALS['TL_FFL'][$property->getWidgetType()];
-        if (!class_exists($className)) {
+        $className = (string) $GLOBALS['TL_FFL'][$property->getWidgetType()];
+        if (!\class_exists($className)) {
             return null;
         }
 
@@ -218,12 +247,10 @@ class DefaultWidgetBuilder
      * Get special labels.
      *
      * @param EnvironmentInterface $environment The environment.
-     *
      * @param PropertyInterface    $propInfo    The property for which the options shall be retrieved.
-     *
      * @param ModelInterface       $model       The model.
      *
-     * @return string[]
+     * @return string[]|null
      */
     private function getOptionsForWidget(
         EnvironmentInterface $environment,
@@ -231,8 +258,10 @@ class DefaultWidgetBuilder
         ModelInterface $model
     ) {
         $dispatcher = $environment->getEventDispatcher();
-        $options    = $propInfo->getOptions();
-        $event      = new GetPropertyOptionsEvent($environment, $model);
+        assert($dispatcher instanceof EventDispatcherInterface);
+
+        $options = $propInfo->getOptions();
+        $event   = new GetPropertyOptionsEvent($environment, $model);
         $event->setPropertyName($propInfo->getName());
         $event->setOptions($options);
         $dispatcher->dispatch($event, GetPropertyOptionsEvent::NAME);
@@ -255,7 +284,7 @@ class DefaultWidgetBuilder
      */
     private function addCssClass($classString, $class)
     {
-        if (null !== $classString) {
+        if ('' !== $classString) {
             $classString .= ' ' . $class;
         } else {
             $classString = $class;
