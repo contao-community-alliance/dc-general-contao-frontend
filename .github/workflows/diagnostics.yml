@@ -1,9 +1,10 @@
 name: Code Quality Diagnostics
 
 on:
-  pull_request:
   push:
-    branches:
+    branches-ignore:
+      - '**-translation'
+  pull_request:
 
 jobs:
   build:
@@ -12,14 +13,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: [ '8.1', '8.2' ]
-        contao: [ '~4.13.0' ]
+        php: [ '8.2', '8.3' ]
+        contao: [ '~5.3' ]
         phpcq_install: [ 'update' ]
         output: [ '-o github-action -o default' ]
 
     steps:
       - name: Pull source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup PHP with PECL extension
         uses: shivammathur/setup-php@v2
@@ -28,7 +29,7 @@ jobs:
 
       # setup caches
       - name: Cache composer cache directory
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         env:
           cache-name: composer-cache-dir
         with:
@@ -36,7 +37,7 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.php }}-build-${{ env.cache-name }}
 
       - name: Cache vendor directory
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         env:
           cache-name: vendor
         with:
@@ -46,7 +47,7 @@ jobs:
             ${{ runner.os }}-${{ matrix.php }}-${{ matrix.contao }}-build-${{ env.cache-name }}-
 
       - name: Cache phpcq directory
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         env:
           cache-name: phpcq
         with:
@@ -68,8 +69,9 @@ jobs:
         run: ./vendor/bin/phpcq run -v ${{ matrix.output }}
 
       - name: Upload build directory to artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: ${{ success() }} || ${{ failure() }}
         with:
           name: phpcq-builds-php-${{ matrix.php }}-${{ matrix.contao }}
           path: .phpcq/build/
+
