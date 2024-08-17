@@ -553,7 +553,7 @@ class UploadOnSteroids extends FormFileUpload
         $container  = System::getContainer();
         $projectDir = $container->getParameter('kernel.project_dir');
         assert(\is_string($projectDir));
-        $imageFactory = $container->get('contao.image.image_factory');
+        $imageFactory = $container->get('contao.image.factory');
         assert($imageFactory instanceof ImageFactory);
         foreach ($statement->fetchAllAssociative() as $file) {
             if (null === ($objFile = FilesModel::findByUuid($file['uuid']))) {
