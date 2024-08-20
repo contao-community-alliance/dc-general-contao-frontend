@@ -18,16 +18,18 @@
  * @filesource
  */
 
+use Contao\Environment;
+use Contao\Message;
 use Contao\StringUtil;
 use Contao\System;
 
 $requestToken = System::getContainer()->get('contao.csrf.token_manager')->getDefaultTokenValue();
 ?>
 <h2 class="sub_headline"><?= $this->subHeadline; ?></h2>
-<?= $this->getMessages() ?>
+<?= Message::generate() ?>
 
 <form method="post"
-      action="<?= StringUtil::ampersand(\Environment::get('request')) ?>"
+      action="<?= StringUtil::ampersand(Environment::get('request')) ?>"
       id="<?= $this->table ?>"
       enctype="<?= $this->enctype ?>"
 >

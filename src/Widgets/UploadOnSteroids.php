@@ -28,7 +28,7 @@ use Contao\CoreBundle\Framework\Adapter;
 use Contao\Dbafs;
 use Contao\File;
 use Contao\FilesModel;
-use Contao\FormFileUpload;
+use Contao\FormUpload;
 use Contao\Input;
 use Contao\StringUtil;
 use Contao\System;
@@ -71,7 +71,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * @psalm-suppress UndefinedThisPropertyFetch
  * @psalm-suppress UndefinedThisPropertyAssignment
  */
-class UploadOnSteroids extends FormFileUpload
+class UploadOnSteroids extends FormUpload
 {
     /**
      * The submit indicator.
