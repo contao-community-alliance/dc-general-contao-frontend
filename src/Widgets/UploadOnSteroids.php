@@ -95,7 +95,7 @@ class UploadOnSteroids extends FormUpload
     protected $strPrefix = 'widget widget-upload widget-upload-on-steroids';
 
     /**
-     * Image sizes as serialisized string.
+     * Image sizes as serialized string.
      *
      * @var string
      */
@@ -579,20 +579,20 @@ class UploadOnSteroids extends FormUpload
     /**
      * Translate.
      *
-     * @param string      $transId    The message id (may also be an object that can be cast to string).
-     * @param array       $parameters An array of parameters for the message.
-     * @param string|null $domain     The domain for the message or null to use the default.
-     * @param string|null $locale     The locale or null to use the default.
+     * @param string $strId     The message id (may also be an object that can be cast to string).
+     * @param array  $arrParams An array of parameters for the message.
+     * @param string $strDomain The domain for the message or null to use the default.
+     * @param string $locale    The locale or null to use the default.
      *
      * @return string
      */
     public function trans(
-        string $transId,
-        array $parameters = [],
-        ?string $domain = 'contao_default',
-        ?string $locale = null
+        $strId,
+        array $arrParams = [],
+        $strDomain = 'contao_default',
+        $locale = null
     ): string {
-        return $this->translator()->trans($transId, $parameters, $domain, $locale);
+        return $this->translator()->trans($strId, $arrParams, $strDomain, $locale);
     }
 
     /**
@@ -643,7 +643,7 @@ class UploadOnSteroids extends FormUpload
 
     private function getCurrentRequest(): ?Request
     {
-        $requestStack = \Contao\System::getContainer()->get('request_stack');
+        $requestStack = System::getContainer()->get('request_stack');
         if (!$requestStack instanceof RequestStack) {
             return null;
         }
@@ -674,7 +674,7 @@ class UploadOnSteroids extends FormUpload
     private function filesystem(): Filesystem
     {
         if (null === $this->filesystem) {
-            $filesystem = self::getContainer()->get('filesystem');
+            $filesystem = self::getContainer()->get('cca.dc-general.contao_frontend.filesystem');
             assert($filesystem instanceof Filesystem);
             $this->filesystem = $filesystem;
         }

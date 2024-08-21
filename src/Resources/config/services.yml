@@ -5,3 +5,7 @@ services:
           - '@event_dispatcher'
           - '@cca.translator.contao_translator'
         public: true
+    # For internal use only but has to be public as the widget can't use dependency injection :(
+    cca.dc-general.contao_frontend.filesystem:
+        alias: 'filesystem'
+        public: true
