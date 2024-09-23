@@ -76,7 +76,7 @@ class CreateHandler
         }
 
         // Only run when no response given yet.
-        if ('' !== $event->getResponse()) {
+        if (null !== $event->getResponse()) {
             return;
         }
 
