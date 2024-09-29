@@ -231,10 +231,10 @@ class UploadOnSteroids extends FormUpload
             $this->uploadFolder = $newUploadFolder?->uuid ?? '';
         }
 
-        $this->validateSingleUpload();
-        $this->validateMultipleUpload();
         $this->deselectFile($inputName);
         $this->deleteFile($inputName);
+        $this->validateSingleUpload();
+        $this->validateMultipleUpload();
     }
 
     /**
@@ -256,12 +256,9 @@ class UploadOnSteroids extends FormUpload
 
         parent::validate();
 
-        if (!isset($_SESSION['FILES'][$inputName]) || $this->hasErrors()) {
-            return;
-        }
+        $file = $this->varValue;
 
-        $file = $_SESSION['FILES'][$inputName];
-        if (!isset($file['uuid'])) {
+        if ($this->hasErrors() || !\is_array($file) || !isset($file['uuid'])) {
             return;
         }
 
@@ -294,12 +291,9 @@ class UploadOnSteroids extends FormUpload
 
             parent::validate();
 
-            if (!isset($_SESSION['FILES'][$inputName]) || $this->hasErrors()) {
-                return;
-            }
+            $file = $this->varValue;
 
-            $file = $_SESSION['FILES'][$inputName];
-            if (!isset($file['uuid'])) {
+            if ($this->hasErrors() || !\is_array($file) || !isset($file['uuid'])) {
                 return;
             }
 
@@ -353,7 +347,7 @@ class UploadOnSteroids extends FormUpload
         if (
             !$this->deselect
             || $this->hasErrors()
-            || [] === ($post = (array) ($this->getCurrentRequest()?->request->get($inputName . '__reset') ?? []))
+            || [] === ($post = (array) ($this->getCurrentRequest()?->request->all($inputName . '__reset') ?? []))
         ) {
             return;
         }
@@ -385,7 +379,7 @@ class UploadOnSteroids extends FormUpload
         if (
             !$this->delete
             || $this->hasErrors()
-            || [] === ($post = (array) ($this->getCurrentRequest()?->request->get($inputName . '__delete') ?? []))
+            || [] === ($post = (array) ($this->getCurrentRequest()?->request->all($inputName . '__delete') ?? []))
         ) {
             return;
         }
