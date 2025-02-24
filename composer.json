@@ -30,10 +30,10 @@
   },
   "require": {
     "php": "^8.2",
-    "contao-community-alliance/dc-general": "^2.4@dev",
-    "contao-community-alliance/translator": "^2.5@dev",
-    "contao-community-alliance/url-builder": "^2.0@dev",
-    "contao/core-bundle": "^5.3 <5.7",
+    "contao-community-alliance/dc-general": "^2.4",
+    "contao-community-alliance/translator": "^2.5",
+    "contao-community-alliance/url-builder": "^2.0",
+    "contao/core-bundle": "^5.3",
     "symfony/event-dispatcher": "^6.4"
   },
   "require-dev": {

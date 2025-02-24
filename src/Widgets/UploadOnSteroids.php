@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2016-2024 Contao Community Alliance.
+ * (c) 2016-2025 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -13,7 +13,7 @@
  * @package   contao-community-alliance/dc-general-contao-frontend
  * @author    Sven Baumann <baumann.sv@gmail.com>
  * @author    Ingolf Steinhardt <info@e-spin.de>
- * @copyright 2016-2024 Contao Community Alliance.
+ * @copyright 2016-2025 Contao Community Alliance.
  * @license   https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  *
  * @filesource
@@ -347,7 +347,7 @@ class UploadOnSteroids extends FormUpload
         if (
             !$this->deselect
             || $this->hasErrors()
-            || [] === ($post = (array) ($this->getCurrentRequest()?->request->all($inputName . '__reset') ?? []))
+            || [] === ($post = ($this->getCurrentRequest()?->request->all($inputName . '__reset')))
         ) {
             return;
         }
@@ -379,7 +379,7 @@ class UploadOnSteroids extends FormUpload
         if (
             !$this->delete
             || $this->hasErrors()
-            || [] === ($post = (array) ($this->getCurrentRequest()?->request->all($inputName . '__delete') ?? []))
+            || [] === ($post = ($this->getCurrentRequest()?->request->all($inputName . '__delete')))
         ) {
             return;
         }
@@ -554,9 +554,9 @@ class UploadOnSteroids extends FormUpload
                 continue;
             }
             $src              = $imageFactory
-                ->create($projectDir . '/' . rawurldecode($objFile->path), $this->imageSize)
+                ->create($projectDir . '/' . \rawurldecode($objFile->path), $this->imageSize)
                 ->getUrl($projectDir);
-            $objThumbnailFile = new File(rawurldecode($src));
+            $objThumbnailFile = new File(\rawurldecode($src));
 
             $file['thumbnail'] = [
                 'src'    => StringUtil::specialcharsUrl(Controller::addFilesUrlTo($src)),
@@ -652,7 +652,7 @@ class UploadOnSteroids extends FormUpload
     private function filesModel(): Adapter
     {
         if (null === $this->filesModel) {
-            $filesModel = self::getContainer()->get('contao.framework')?->getAdapter(FilesModel::class);
+            $filesModel = self::getContainer()->get('contao.framework')->getAdapter(FilesModel::class);
             assert($filesModel instanceof Adapter);
             $this->filesModel = $filesModel;
         }

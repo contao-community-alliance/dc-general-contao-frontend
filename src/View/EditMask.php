@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015-2024 Contao Community Alliance.
+ * (c) 2015-2025 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,13 +15,15 @@
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
  * @author     Sven Baumann <baumann.sv@gmail.com>
  * @author     Ingolf Steinhardt <info@e-spin.de>
- * @copyright  2015-2024 Contao Community Alliance.
+ * @copyright  2015-2025 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
 
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View;
 
+use Contao\FrontendUser;
+use Contao\System;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Event\DcGeneralFrontendEvents;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Event\HandleSubmitEvent;
 use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\Event\GetEditMaskSubHeadlineEvent;
@@ -200,6 +202,7 @@ class EditMask
             $this->handleSubmit($buttons);
         }
 
+        /** @psalm-suppress DeprecatedClass */
         $template = new ViewTemplate('dcfe_general_edit');
         $template->setData(
             [
@@ -490,11 +493,10 @@ class EditMask
             !$currentVersion
             || !$dataProvider->sameModels($model, $version)
         ) {
-            $user     = \FrontendUser::getInstance();
+            $user     = FrontendUser::getInstance();
             $username = '(frontend anonymous)';
 
-            /** @psalm-suppress DeprecatedMethod */
-            if ($user->authenticate()) {
+            if (System::getContainer()->get('contao.security.token_checker')->hasFrontendUser()) {
                 $username = $user->username ?? '';
             }
 
