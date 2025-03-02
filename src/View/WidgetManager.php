@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015-2024 Contao Community Alliance.
+ * (c) 2015-2025 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -14,14 +14,14 @@
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
  * @author     Ingolf Steinhardt <info@e-spin.de>
- * @copyright  2015-2024 Contao Community Alliance.
+ * @copyright  2015-2025 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
 
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View;
 
-use Contao\FormTextArea;
+use Contao\FormTextarea;
 use Contao\Input;
 use Contao\Widget;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Event\BuildWidgetEvent;
@@ -77,7 +77,7 @@ class WidgetManager
      * @param string                $property Name of the property for which the widget shall be retrieved.
      * @param PropertyValueBag|null $valueBag The input values to use (optional).
      *
-     * @return \Widget|null
+     * @return Widget|null
      *
      * @throws DcGeneralRuntimeException         When No widget could be built.
      * @throws DcGeneralInvalidArgumentException When property is not defined in the property definitions.
@@ -219,7 +219,7 @@ class WidgetManager
 
         try {
             // See https://github.com/contao/contao/blob/7e6bacd4e/core-bundle/src/Resources/contao/forms/FormTextArea.php#L147
-            if ($widget instanceof FormTextArea) {
+            if ($widget instanceof FormTextarea) {
                 /** @psalm-suppress UndefinedMagicPropertyFetch */
                 $valueBag->setPropertyValue($property, $this->encodeValue($property, $widget->rawValue, $valueBag));
                 return;

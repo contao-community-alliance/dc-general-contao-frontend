@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2016-2024 Contao Community Alliance.
+ * (c) 2016-2025 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -13,7 +13,7 @@
  * @package   contao-community-alliance/dc-general-contao-frontend
  * @author    Sven Baumann <baumann.sv@gmail.com>
  * @author    Ingolf Steinhardt <info@e-spin.de>
- * @copyright 2016-2024 Contao Community Alliance.
+ * @copyright 2016-2025 Contao Community Alliance.
  * @license   https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  *
  * @filesource
@@ -28,7 +28,7 @@ use Contao\CoreBundle\Framework\Adapter;
 use Contao\Dbafs;
 use Contao\File;
 use Contao\FilesModel;
-use Contao\FormFileUpload;
+use Contao\FormUpload;
 use Contao\Input;
 use Contao\StringUtil;
 use Contao\System;
@@ -71,7 +71,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * @psalm-suppress UndefinedThisPropertyFetch
  * @psalm-suppress UndefinedThisPropertyAssignment
  */
-class UploadOnSteroids extends FormFileUpload
+class UploadOnSteroids extends FormUpload
 {
     /**
      * The submit indicator.
@@ -95,7 +95,7 @@ class UploadOnSteroids extends FormFileUpload
     protected $strPrefix = 'widget widget-upload widget-upload-on-steroids';
 
     /**
-     * Image sizes as serialisized string.
+     * Image sizes as serialized string.
      *
      * @var string
      */
@@ -231,10 +231,10 @@ class UploadOnSteroids extends FormFileUpload
             $this->uploadFolder = $newUploadFolder?->uuid ?? '';
         }
 
-        $this->validateSingleUpload();
-        $this->validateMultipleUpload();
         $this->deselectFile($inputName);
         $this->deleteFile($inputName);
+        $this->validateSingleUpload();
+        $this->validateMultipleUpload();
     }
 
     /**
@@ -256,12 +256,9 @@ class UploadOnSteroids extends FormFileUpload
 
         parent::validate();
 
-        if (!isset($_SESSION['FILES'][$inputName]) || $this->hasErrors()) {
-            return;
-        }
+        $file = $this->varValue;
 
-        $file = $_SESSION['FILES'][$inputName];
-        if (!isset($file['uuid'])) {
+        if ($this->hasErrors() || !\is_array($file) || !isset($file['uuid'])) {
             return;
         }
 
@@ -294,12 +291,9 @@ class UploadOnSteroids extends FormFileUpload
 
             parent::validate();
 
-            if (!isset($_SESSION['FILES'][$inputName]) || $this->hasErrors()) {
-                return;
-            }
+            $file = $this->varValue;
 
-            $file = $_SESSION['FILES'][$inputName];
-            if (!isset($file['uuid'])) {
+            if ($this->hasErrors() || !\is_array($file) || !isset($file['uuid'])) {
                 return;
             }
 
@@ -353,7 +347,7 @@ class UploadOnSteroids extends FormFileUpload
         if (
             !$this->deselect
             || $this->hasErrors()
-            || [] === ($post = (array) ($this->getCurrentRequest()?->request->get($inputName . '__reset') ?? []))
+            || [] === ($post = ($this->getCurrentRequest()?->request->all($inputName . '__reset')))
         ) {
             return;
         }
@@ -385,7 +379,7 @@ class UploadOnSteroids extends FormFileUpload
         if (
             !$this->delete
             || $this->hasErrors()
-            || [] === ($post = (array) ($this->getCurrentRequest()?->request->get($inputName . '__delete') ?? []))
+            || [] === ($post = ($this->getCurrentRequest()?->request->all($inputName . '__delete')))
         ) {
             return;
         }
@@ -553,16 +547,16 @@ class UploadOnSteroids extends FormFileUpload
         $container  = System::getContainer();
         $projectDir = $container->getParameter('kernel.project_dir');
         assert(\is_string($projectDir));
-        $imageFactory = $container->get('contao.image.image_factory');
+        $imageFactory = $container->get('contao.image.factory');
         assert($imageFactory instanceof ImageFactory);
         foreach ($statement->fetchAllAssociative() as $file) {
             if (null === ($objFile = FilesModel::findByUuid($file['uuid']))) {
                 continue;
             }
             $src              = $imageFactory
-                ->create($projectDir . '/' . rawurldecode($objFile->path), $this->imageSize)
+                ->create($projectDir . '/' . \rawurldecode($objFile->path), $this->imageSize)
                 ->getUrl($projectDir);
-            $objThumbnailFile = new File(rawurldecode($src));
+            $objThumbnailFile = new File(\rawurldecode($src));
 
             $file['thumbnail'] = [
                 'src'    => StringUtil::specialcharsUrl(Controller::addFilesUrlTo($src)),
@@ -579,20 +573,20 @@ class UploadOnSteroids extends FormFileUpload
     /**
      * Translate.
      *
-     * @param string      $transId    The message id (may also be an object that can be cast to string).
-     * @param array       $parameters An array of parameters for the message.
-     * @param string|null $domain     The domain for the message or null to use the default.
-     * @param string|null $locale     The locale or null to use the default.
+     * @param string $strId     The message id (may also be an object that can be cast to string).
+     * @param array  $arrParams An array of parameters for the message.
+     * @param string $strDomain The domain for the message or null to use the default.
+     * @param string $locale    The locale or null to use the default.
      *
      * @return string
      */
     public function trans(
-        string $transId,
-        array $parameters = [],
-        ?string $domain = 'contao_default',
-        ?string $locale = null
+        $strId,
+        array $arrParams = [],
+        $strDomain = 'contao_default',
+        $locale = null
     ): string {
-        return $this->translator()->trans($transId, $parameters, $domain, $locale);
+        return $this->translator()->trans($strId, $arrParams, $strDomain, $locale);
     }
 
     /**
@@ -643,7 +637,7 @@ class UploadOnSteroids extends FormFileUpload
 
     private function getCurrentRequest(): ?Request
     {
-        $requestStack = \Contao\System::getContainer()->get('request_stack');
+        $requestStack = System::getContainer()->get('request_stack');
         if (!$requestStack instanceof RequestStack) {
             return null;
         }
@@ -658,7 +652,7 @@ class UploadOnSteroids extends FormFileUpload
     private function filesModel(): Adapter
     {
         if (null === $this->filesModel) {
-            $filesModel = self::getContainer()->get('contao.framework')?->getAdapter(FilesModel::class);
+            $filesModel = self::getContainer()->get('contao.framework')->getAdapter(FilesModel::class);
             assert($filesModel instanceof Adapter);
             $this->filesModel = $filesModel;
         }
@@ -674,7 +668,7 @@ class UploadOnSteroids extends FormFileUpload
     private function filesystem(): Filesystem
     {
         if (null === $this->filesystem) {
-            $filesystem = self::getContainer()->get('filesystem');
+            $filesystem = self::getContainer()->get('cca.dc-general.contao_frontend.filesystem');
             assert($filesystem instanceof Filesystem);
             $this->filesystem = $filesystem;
         }
