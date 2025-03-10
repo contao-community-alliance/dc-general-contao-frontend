@@ -33,8 +33,10 @@
     "contao-community-alliance/dc-general": "^2.4",
     "contao-community-alliance/translator": "^2.5",
     "contao-community-alliance/url-builder": "^2.0",
-    "contao/core-bundle": "^5.3",
-    "symfony/event-dispatcher": "^6.4"
+    "contao/core-bundle": "^5.3 <5.7",
+    "symfony/event-dispatcher": "^6.4",
+    "symfony/filesystem": "^6.4",
+    "symfony/http-kernel": "^6.4"
   },
   "require-dev": {
     "contao/manager-plugin": "^2.8",
