@@ -40,7 +40,9 @@
     "contao-community-alliance/translator": "^2.5",
     "contao-community-alliance/url-builder": "^2.1",
     "contao/core-bundle": "^5.7",
-    "symfony/event-dispatcher": "^7.4"
+    "symfony/event-dispatcher": "^7.4",
+    "symfony/filesystem": "^7.4",
+    "symfony/http-kernel": "^7.4"
   },
   "require-dev": {
     "contao/manager-plugin": "^2.8",
