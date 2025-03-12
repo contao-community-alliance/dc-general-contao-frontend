@@ -35,9 +35,11 @@ use Contao\System;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
+use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
@@ -219,7 +221,11 @@ class UploadOnSteroids extends FormUpload
 
             $newUploadFolder = null;
             if (!$this->filesystem()->exists($uploadFolderPath)) {
-                $this->filesystem()->mkdir($uploadFolderPath);
+                try {
+                    $this->filesystem()->mkdir($uploadFolderPath);
+                } catch (IOException $exception) {
+                    throw new BadRequestHttpException('Could not create directory', $exception);
+                }
                 $newUploadFolder = Dbafs::addResource($uploadFolderPath);
             }
 
