@@ -5,6 +5,7 @@
     "BackendTemplate",
     "ContaoCommunityAlliance\\Contao\\Bindings\\ContaoEvents",
     "ContaoCommunityAlliance\\Contao\\Bindings\\Events\\Widget\\GetAttributesFromDcaEvent",
+    "ContaoCommunityAlliance\\Contao\\Bindings\\Events\\Controller\\RedirectEvent",
     "Contao\\ManagerBundle\\ContaoManagerBundle",
     "Contao\\ManagerPlugin\\Bundle\\BundlePluginInterface",
     "Contao\\ManagerPlugin\\Bundle\\Config\\BundleConfig",

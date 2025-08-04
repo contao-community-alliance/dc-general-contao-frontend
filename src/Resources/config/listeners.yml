@@ -44,3 +44,11 @@ services:
             - '@request_stack'
         tags:
             - { name: kernel.event_listener, event: dc-general.action, method: handleEvent }
+
+    cca.dc-general.contao_frontend.language_filter:
+        class: ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Filter\LanguageFilter
+        public: true
+        arguments:
+            - "@cca.dc-general.scope-matcher"
+        tags:
+            - name: kernel.event_subscriber

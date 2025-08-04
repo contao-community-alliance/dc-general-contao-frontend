@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015-2024 Contao Community Alliance.
+ * (c) 2015-2025 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -13,7 +13,7 @@
  * @package    contao-community-alliance/dc-general-contao-frontend
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author     Ingolf Steinhardt <info@e-spin.de>
- * @copyright  2015-2024 Contao Community Alliance.
+ * @copyright  2015-2025 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
@@ -25,7 +25,39 @@ use Contao\System;
 
 $requestToken = System::getContainer()->get('contao.csrf.token_manager')->getDefaultTokenValue();
 ?>
-<h2 class="sub_headline"><?= $this->subHeadline; ?></h2>
+<h2 class="sub_headline"><?= $this->subHeadline ?></h2>
+
+<?php if ($this->language && !empty($this->languages)): ?>
+  <div class="tl_panel tl_language_panel">
+    <form action="" id="language_switch" class="tl_form" method="post">
+      <div class="tl_formbody">
+        <input type="hidden" name="FORM_SUBMIT" value="language_switch" />
+        <input type="hidden" name="REQUEST_TOKEN" value="<?= $requestToken ?>" />
+        <label for="selectLanguage"><strong><?= StringUtil::specialchars($this->languageLabel) ?>: </strong></label>
+        <select name="language" id="selectLanguage" class="tl_select" onchange="autoSubmit('language_switch')">
+          <?php foreach ($this->languages as $langCode => $languageName) : ?>
+            <option value="<?= $langCode ?>"<?php if ($langCode === $this->language): ?> selected="selected"<?php endif; ?>>
+              <?= $languageName ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+        <input type="submit" name="switchLanguage" id="switchLanguage" class="tl_submit" value="<?= StringUtil::specialchars($this->languageSubmit) ?>" />
+      </div>
+    </form>
+  </div>
+  <?php
+  $GLOBALS['TL_BODY'][] = '
+<script>
+function autoSubmit(formId) {
+  const form = document.getElementById(formId);
+  if (form) {
+    form.submit();
+  }
+}
+</script>';
+  ?>
+<?php endif; ?>
+
 <?= Message::generate() ?>
 
 <form method="post"
@@ -36,7 +68,7 @@ $requestToken = System::getContainer()->get('contao.csrf.token_manager')->getDef
     <div class="formbody_edit">
         <input type="hidden" name="FORM_SUBMIT" value="<?= StringUtil::specialchars($this->table) ?>"/>
         <input type="hidden" name="REQUEST_TOKEN" value="<?= $requestToken ?>"/>
-        <?php if ($this->error): ?><p class="tl_error"><?= implode('<br />', $this->error) ?></p><?php endif; ?>
+        <?php if ($this->error): ?><p class="tl_error"><?= \implode('<br />', $this->error) ?></p><?php endif; ?>
         <?php foreach ($this->fieldsets as $arrFieldset): ?>
             <?php if ($arrFieldset['legend']): ?>
                 <fieldset id="pal_<?= StringUtil::specialchars($arrFieldset['legend']) ?>"
@@ -53,7 +85,7 @@ $requestToken = System::getContainer()->get('contao.csrf.token_manager')->getDef
     </div>
     <div class="formbody_submit">
         <div class="submit_container">
-            <?= implode(' ', $this->editButtons) ?>
+            <?= \implode(' ', $this->editButtons) ?>
         </div>
     </div>
 </form>

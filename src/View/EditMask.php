@@ -24,12 +24,14 @@ declare(strict_types=1);
 
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View;
 
+use Contao\CoreBundle\Intl\Locales;
 use Contao\FrontendUser;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Event\DcGeneralFrontendEvents;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Event\HandleSubmitEvent;
 use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\Event\GetEditMaskSubHeadlineEvent;
 use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\Event\GetEditModeButtonsEvent;
 use ContaoCommunityAlliance\DcGeneral\Controller\ControllerInterface;
+use ContaoCommunityAlliance\DcGeneral\Data\MultiLanguageDataProviderInterface;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\ContainerInterface;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\DataProviderInformationInterface;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\Definition\PropertiesDefinitionInterface;
@@ -144,13 +146,13 @@ class EditMask
     {
         $providerName      = $model->getProviderName();
         $this->environment = $environment;
-        $translator       = $environment->getTranslator();
+        $translator        = $environment->getTranslator();
         assert($translator instanceof TranslatorInterface);
-        $this->translator  = $translator;
-        $dispatcher        = $environment->getEventDispatcher();
+        $this->translator = $translator;
+        $dispatcher       = $environment->getEventDispatcher();
         assert($dispatcher instanceof EventDispatcherInterface);
-        $this->dispatcher  = $dispatcher;
-        $dataDefinition    = $environment->getDataDefinition();
+        $this->dispatcher = $dispatcher;
+        $dataDefinition   = $environment->getDataDefinition();
         assert($dataDefinition instanceof ContainerInterface);
         $this->definition    = $dataDefinition;
         $this->modelProvider = $dataDefinition->getDataProviderDefinition()->getInformation($providerName);
@@ -214,9 +216,11 @@ class EditMask
                 'enctype'     => 'multipart/form-data',
                 'error'       => $this->errors,
                 'editButtons' => $buttons,
-                'model'       => $this->model
+                'model'       => $this->model,
             ]
         );
+
+        $this->executeMultiLanguage($template);
 
         return $template->parse();
     }
@@ -588,5 +592,48 @@ class EditMask
         $this->handlePostPersist();
 
         $this->storeVersion($this->model);
+    }
+
+    /**
+     * Execute the multi-language support.
+     *
+     * @param ViewTemplate $template The template.
+     *
+     * @return void
+     *
+     * @psalm-suppress DeprecatedClass
+     */
+    private function executeMultiLanguage(ViewTemplate $template)
+    {
+        //$dataProvider = $this->getEnvironment()->getDataProvider($this->model->getProviderName());
+        $dataProvider = $this->environment->getDataProvider($this->model->getProviderName());
+        if (
+            $dataProvider instanceof MultiLanguageDataProviderInterface
+            && null !== $dataProvider->getLanguages($this->model->getId())
+        ) {
+            $locales = System::getContainer()->get('contao.intl.locales');
+            assert($locales instanceof Locales);
+
+            $languages = $locales->getLocales(null, true);
+
+            $controller = $this->environment->getController();
+            assert($controller instanceof ControllerInterface);
+
+            $translator = $this->environment->getTranslator();
+            assert($translator instanceof TranslatorInterface);
+
+            $template
+                ->set('languages', $controller->getSupportedLanguages($this->model->getId()))
+                ->set('language', $dataProvider->getCurrentLanguage())
+                ->set('languageSubmit', $translator->translate('change-language', 'dc-general'))
+                ->set('languageLabel', $translator->translate('language', 'dc-general'))
+                ->set('languageHeadline', $languages[$dataProvider->getCurrentLanguage()] ?? '');
+
+            return;
+        }
+
+        $template
+            ->set('languages', null)
+            ->set('languageHeadline', '');
     }
 }

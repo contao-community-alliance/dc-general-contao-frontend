@@ -29,7 +29,9 @@ use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminator;
 use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminatorAwareTrait;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\EditMask;
 use ContaoCommunityAlliance\DcGeneral\Data\DataProviderInterface;
+use ContaoCommunityAlliance\DcGeneral\Data\LanguageInformationInterface;
 use ContaoCommunityAlliance\DcGeneral\Data\ModelId;
+use ContaoCommunityAlliance\DcGeneral\Data\MultiLanguageDataProviderInterface;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\ContainerInterface;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\Definition\BasicDefinitionInterface;
 use ContaoCommunityAlliance\DcGeneral\EnvironmentInterface;
@@ -114,12 +116,12 @@ class EditHandler
         $basicDefinition = $definition->getBasicDefinition();
 
         if (!$basicDefinition->isEditable()) {
-            throw new NotEditableException('DataContainer ' . $definition->getName() . ' is not editable');
+            throw new NotEditableException('DataContainer ' . $definition->getName() . ' is not editable.');
         }
 
         // We only support flat tables, sorry.
         if (BasicDefinitionInterface::MODE_HIERARCHICAL === $basicDefinition->getMode()) {
-            return '';
+            throw new NotEditableException('Mode "' . $basicDefinition->getMode() . '" is not editable.');
         }
 
         $inputProvider = $environment->getInputProvider();
