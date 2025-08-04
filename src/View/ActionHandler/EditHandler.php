@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015-2024 Contao Community Alliance.
+ * (c) 2015-2025 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,7 +15,7 @@
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
  * @author     Sven Baumann <baumann.sv@gmail.com>
  * @author     Ingolf Steinhardt <info@e-spin.de>
- * @copyright  2015-2024 Contao Community Alliance.
+ * @copyright  2015-2025 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
@@ -27,7 +27,9 @@ use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminator;
 use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminatorAwareTrait;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\EditMask;
 use ContaoCommunityAlliance\DcGeneral\Data\DataProviderInterface;
+use ContaoCommunityAlliance\DcGeneral\Data\LanguageInformationInterface;
 use ContaoCommunityAlliance\DcGeneral\Data\ModelId;
+use ContaoCommunityAlliance\DcGeneral\Data\MultiLanguageDataProviderInterface;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\ContainerInterface;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\Definition\BasicDefinitionInterface;
 use ContaoCommunityAlliance\DcGeneral\EnvironmentInterface;
@@ -110,12 +112,12 @@ class EditHandler
         $basicDefinition = $definition->getBasicDefinition();
 
         if (!$basicDefinition->isEditable()) {
-            throw new NotEditableException('DataContainer ' . $definition->getName() . ' is not editable');
+            throw new NotEditableException('DataContainer ' . $definition->getName() . ' is not editable.');
         }
 
         // We only support flat tables, sorry.
         if (BasicDefinitionInterface::MODE_HIERARCHICAL === $basicDefinition->getMode()) {
-            return '';
+            throw new NotEditableException('Mode "' . $basicDefinition->getMode() . '" is not editable.');
         }
 
         $inputProvider = $environment->getInputProvider();
