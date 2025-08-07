@@ -28,34 +28,24 @@ $requestToken = System::getContainer()->get('contao.csrf.token_manager')->getDef
 <h2 class="sub_headline"><?= $this->subHeadline ?></h2>
 
 <?php if ($this->language && !empty($this->languages)): ?>
+  <script>document.write('<style>.no-js{display:none}</style>');</script>
   <div class="tl_panel tl_language_panel">
     <form action="" id="language_switch" class="tl_form" method="post">
       <div class="tl_formbody">
         <input type="hidden" name="FORM_SUBMIT" value="language_switch" />
         <input type="hidden" name="REQUEST_TOKEN" value="<?= $requestToken ?>" />
         <label for="selectLanguage"><strong><?= StringUtil::specialchars($this->languageLabel) ?>: </strong></label>
-        <select name="language" id="selectLanguage" class="tl_select" onchange="autoSubmit('language_switch')">
+        <select name="language" id="selectLanguage" class="tl_select">
           <?php foreach ($this->languages as $langCode => $languageName) : ?>
             <option value="<?= $langCode ?>"<?php if ($langCode === $this->language): ?> selected="selected"<?php endif; ?>>
               <?= $languageName ?>
             </option>
           <?php endforeach; ?>
         </select>
-        <input type="submit" name="switchLanguage" id="switchLanguage" class="tl_submit" value="<?= StringUtil::specialchars($this->languageSubmit) ?>" />
+        <input type="submit" name="switchLanguage" id="switchLanguage" class="tl_submit no-js" value="<?= StringUtil::specialchars($this->languageSubmit) ?>" />
       </div>
     </form>
   </div>
-  <?php
-  $GLOBALS['TL_BODY'][] = '
-<script>
-function autoSubmit(formId) {
-  const form = document.getElementById(formId);
-  if (form) {
-    form.submit();
-  }
-}
-</script>';
-  ?>
 <?php endif; ?>
 
 <?= Message::generate() ?>
