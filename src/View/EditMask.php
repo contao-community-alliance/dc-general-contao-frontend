@@ -599,7 +599,6 @@ class EditMask
      */
     private function executeMultiLanguage(ViewTemplate $template)
     {
-        //$dataProvider = $this->getEnvironment()->getDataProvider($this->model->getProviderName());
         $dataProvider = $this->environment->getDataProvider($this->model->getProviderName());
         if (
             $dataProvider instanceof MultiLanguageDataProviderInterface
