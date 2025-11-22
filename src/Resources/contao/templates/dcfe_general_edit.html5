@@ -34,7 +34,7 @@ $requestToken = System::getContainer()->get('contao.csrf.token_manager')->getDef
         <input type="hidden" name="FORM_SUBMIT" value="language_switch" />
         <input type="hidden" name="REQUEST_TOKEN" value="<?= $requestToken ?>" />
         <label for="selectLanguage"><strong><?= StringUtil::specialchars($this->languageLabel) ?>: </strong></label>
-        <select name="language" id="selectLanguage" class="tl_select" onchange="autoSubmit('language_switch')">
+        <select name="language" id="selectLanguage" class="tl_select">
           <?php foreach ($this->languages as $langCode => $languageName) : ?>
             <option value="<?= $langCode ?>"<?php if ($langCode === $this->language): ?> selected="selected"<?php endif; ?>>
               <?= $languageName ?>
@@ -46,15 +46,23 @@ $requestToken = System::getContainer()->get('contao.csrf.token_manager')->getDef
     </form>
   </div>
   <?php
-  $GLOBALS['TL_BODY'][] = '
-<script>
-function autoSubmit(formId) {
-  const form = document.getElementById(formId);
-  if (form) {
-    form.submit();
-  }
-}
-</script>';
+  $GLOBALS['TL_BODY'][] = <<<SCRIPT
+<script{$this->attrs()->setIfExists('nonce', $this->nonce('script-src'))}>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectLanguage = document.getElementById("selectLanguage");
+    if (!selectLanguage) {
+        return;
+    }
+
+    selectLanguage.addEventListener("change", function(event) {
+        const form = document.getElementById("language_switch");
+        if (form) {
+            form.submit();
+        }
+    });
+});
+</script>
+SCRIPT;
   ?>
 <?php endif; ?>
 
@@ -90,13 +98,16 @@ function autoSubmit(formId) {
     </div>
 </form>
 <?php
-$GLOBALS['TL_BODY'][] = '
-<script>
-const form = document.getElementById("' . $this->table . '");
-form.querySelectorAll("button.notsave").forEach(abortButton => {
-    abortButton.addEventListener("click", () => {
-        form.noValidate = true;
-    }, true);
+$GLOBALS['TL_BODY'][] = <<<SCRIPT
+<script{$this->attrs()->setIfExists('nonce', $this->nonce('script-src'))}>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById("{$this->table}");
+    form.querySelectorAll("button.notsave").forEach(abortButton => {
+        abortButton.addEventListener("click", () => {
+            form.noValidate = true;
+        }, true);
+    });
 });
-</script>';
+</script>
+SCRIPT;
 ?>
