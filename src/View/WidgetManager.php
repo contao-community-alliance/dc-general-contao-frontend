@@ -25,6 +25,7 @@ namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View;
 
 use Contao\FormTextArea;
 use Contao\Input;
+use Contao\StringUtil;
 use Contao\Widget;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Event\BuildWidgetEvent;
 use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\Event\EncodePropertyValueFromWidgetEvent;
@@ -106,10 +107,19 @@ class WidgetManager
         $model->setId($this->model->getId());
 
         if ($valueBag) {
-            $values = new PropertyValueBag($valueBag->getArrayCopy());
-
-            $controller = $this->environment->getController();
+            $controller = $environment->getController();
             assert($controller instanceof ControllerInterface);
+
+            $values = new PropertyValueBag();
+            foreach ($valueBag->getIterator() as $propertyName => $propertyValue) {
+                try {
+                    $values->setPropertyValue(
+                        $propertyName,
+                        $this->encodeValue($propertyName, $propertyValue, $valueBag)
+                    );
+                } catch (\Exception $e) {
+                }
+            }
 
             $controller->updateModelFromPropertyBag($model, $values);
         }
@@ -228,6 +238,23 @@ class WidgetManager
              * @psalm-suppress TypeDoesNotContainType
              */
             if ($widget instanceof FormTextArea) {
+                /** @psalm-suppress UndefinedMagicPropertyFetch */
+                if (null !== $widget->rte) {
+                    $valueBag->setPropertyValue(
+                        $property,
+                        $this->encodeValue(
+                            $property,
+                            match(true) {
+                                $widget->value === '' => $widget->getEmptyStringOrNull(),
+                                (bool) $widget->basicEntities => StringUtil::restoreBasicEntities($widget->value),
+                                default => $widget->value,
+                            },
+                            $valueBag
+                        )
+                    );
+
+                    return;
+                }
                 /** @psalm-suppress UndefinedMagicPropertyFetch */
                 $valueBag->setPropertyValue($property, $this->encodeValue($property, $widget->rawValue, $valueBag));
                 return;
