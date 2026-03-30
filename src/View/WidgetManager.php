@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015-2025 Contao Community Alliance.
+ * (c) 2015-2026 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -14,7 +14,7 @@
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
  * @author     Ingolf Steinhardt <info@e-spin.de>
- * @copyright  2015-2025 Contao Community Alliance.
+ * @copyright  2015-2026 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
@@ -23,6 +23,7 @@ namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View;
 
 use Contao\FormTextarea;
 use Contao\Input;
+use Contao\StringUtil;
 use Contao\Widget;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Event\BuildWidgetEvent;
 use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\Event\EncodePropertyValueFromWidgetEvent;
@@ -102,10 +103,19 @@ class WidgetManager
         $model->setId($this->model->getId());
 
         if ($valueBag) {
-            $values = new PropertyValueBag($valueBag->getArrayCopy());
-
-            $controller = $this->environment->getController();
+            $controller = $environment->getController();
             assert($controller instanceof ControllerInterface);
+
+            $values = new PropertyValueBag();
+            foreach ($valueBag->getIterator() as $propertyName => $propertyValue) {
+                try {
+                    $values->setPropertyValue(
+                        $propertyName,
+                        $this->encodeValue($propertyName, $propertyValue, $valueBag)
+                    );
+                } catch (\Exception $e) {
+                }
+            }
 
             $controller->updateModelFromPropertyBag($model, $values);
         }
@@ -220,6 +230,23 @@ class WidgetManager
         try {
             // See https://github.com/contao/contao/blob/7e6bacd4e/core-bundle/src/Resources/contao/forms/FormTextArea.php#L147
             if ($widget instanceof FormTextarea) {
+                /** @psalm-suppress UndefinedMagicPropertyFetch */
+                if (null !== $widget->rte) {
+                    $valueBag->setPropertyValue(
+                        $property,
+                        $this->encodeValue(
+                            $property,
+                            match(true) {
+                                $widget->value === '' => $widget->getEmptyStringOrNull(),
+                                (bool) $widget->basicEntities => StringUtil::restoreBasicEntities($widget->value),
+                                default => $widget->value,
+                            },
+                            $valueBag
+                        )
+                    );
+
+                    return;
+                }
                 /** @psalm-suppress UndefinedMagicPropertyFetch */
                 $valueBag->setPropertyValue($property, $this->encodeValue($property, $widget->rawValue, $valueBag));
                 return;
