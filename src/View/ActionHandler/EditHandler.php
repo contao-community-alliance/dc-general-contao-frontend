@@ -117,7 +117,7 @@ class EditHandler
 
         // We only support flat tables, sorry.
         if (BasicDefinitionInterface::MODE_HIERARCHICAL === $basicDefinition->getMode()) {
-            throw new NotEditableException('Mode "' . $basicDefinition->getMode() . '" is not editable.');
+            throw new NotEditableException('Mode "' . (string) $basicDefinition->getMode() . '" is not editable.');
         }
 
         $inputProvider = $environment->getInputProvider();
