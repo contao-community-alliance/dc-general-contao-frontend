@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015-2024 Contao Community Alliance.
+ * (c) 2015-2026 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -14,14 +14,13 @@
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
  * @author     Ingolf Steinhardt <info@e-spin.de>
- * @copyright  2015-2024 Contao Community Alliance.
+ * @copyright  2015-2026 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
 
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View;
 
-use Contao\System;
 use Contao\Widget;
 use ContaoCommunityAlliance\Contao\Bindings\ContaoEvents;
 use ContaoCommunityAlliance\Contao\Bindings\Events\Widget\GetAttributesFromDcaEvent;
@@ -37,6 +36,10 @@ use ContaoCommunityAlliance\DcGeneral\DataDefinition\Definition\Properties\Prope
 use ContaoCommunityAlliance\DcGeneral\EnvironmentInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
+
+use function array_key_exists;
+use function class_exists;
+use function in_array;
 
 /**
  * Widget Builder to build Contao frontend widgets.
@@ -137,7 +140,7 @@ class DefaultWidgetBuilder
         if (
             isset($propExtra['readonly'])
             && $propExtra['readonly']
-            && \in_array($property->getWidgetType(), ['checkbox', 'select'], true)
+            && in_array($property->getWidgetType(), ['checkbox', 'select'], true)
         ) {
             $propExtra['disabled'] = true;
         }
@@ -236,7 +239,7 @@ class DefaultWidgetBuilder
         }
 
         $className = (string) $GLOBALS['TL_FFL'][$property->getWidgetType()];
-        if (!\class_exists($className)) {
+        if (!class_exists($className)) {
             return null;
         }
 
@@ -257,13 +260,17 @@ class DefaultWidgetBuilder
         PropertyInterface $propInfo,
         ModelInterface $model
     ) {
-        $dispatcher = $environment->getEventDispatcher();
-        assert($dispatcher instanceof EventDispatcherInterface);
+        if (!$this->isGetOptionsAllowed($propInfo)) {
+            return null;
+        }
 
         $options = $propInfo->getOptions();
         $event   = new GetPropertyOptionsEvent($environment, $model);
         $event->setPropertyName($propInfo->getName());
         $event->setOptions($options);
+
+        $dispatcher = $environment->getEventDispatcher();
+        assert($dispatcher instanceof EventDispatcherInterface);
         $dispatcher->dispatch($event, GetPropertyOptionsEvent::NAME);
 
         if ($event->getOptions() !== $options) {
@@ -273,6 +280,30 @@ class DefaultWidgetBuilder
         return $options;
     }
 
+    /**
+     * Check if the current widget is allowed to get options.
+     *
+     * @param PropertyInterface $property The bag with all information.
+     *
+     * @return bool True => allowed to get options | False => doesn't get options.
+     */
+    private function isGetOptionsAllowed(PropertyInterface $property): bool
+    {
+        $propExtra = $property->getExtra();
+
+        // Check to overwrite param.
+        if (array_key_exists('fetchOptions', $propExtra)) {
+            return (true === $propExtra['fetchOptions']);
+        }
+
+        // Check the class.
+        if ('checkbox' !== $property->getWidgetType()) {
+            return true;
+        }
+
+        // Check if multiple is active.
+        return array_key_exists('multiple', $propExtra) && (true === $propExtra['multiple']);
+    }
 
     /**
      * Add a css class to a string of existing css classes.
