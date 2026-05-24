@@ -22,10 +22,15 @@ use Contao\Environment;
 use Contao\Message;
 use Contao\StringUtil;
 use Contao\System;
+use Symfony\Contracts\Translation\TranslatorInterface as SymfonyTranslatorInterface;
 
-$requestToken = System::getContainer()->get('contao.csrf.token_manager')->getDefaultTokenValue();
+$requestToken   = System::getContainer()->get('contao.csrf.token_manager')->getDefaultTokenValue();
+$sysTranslator  = System::getContainer()->get('translator');
+assert($sysTranslator instanceof SymfonyTranslatorInterface);
+$fallbackLabel  = $sysTranslator->trans('language_selector.fallback', [], 'dc-general');
+$fallbackTitle  = $sysTranslator->trans('language_selector.fallback_title', [], 'dc-general');
 ?>
-<h2 class="sub_headline"><?= $this->subHeadline ?></h2>
+<h2 class="sub_headline"><?= $this->subHeadline ?><?php if (!empty($this->languages) && $this->language): ?> - <?= StringUtil::specialchars($this->languages[$this->language] ?? $this->language) ?><?php if ($this->language === $this->fallbackLanguage): ?> <span class="lang-hint--fallback" title="<?= StringUtil::specialchars($fallbackTitle) ?>"><?= StringUtil::specialchars($fallbackLabel) ?></span><?php endif; ?><?php endif; ?></h2>
 
 <?php if ($this->language && !empty($this->languages)): ?>
   <div class="tl_panel tl_language_panel">
@@ -36,8 +41,8 @@ $requestToken = System::getContainer()->get('contao.csrf.token_manager')->getDef
         <label for="selectLanguage"><strong><?= StringUtil::specialchars($this->languageLabel) ?>: </strong></label>
         <select name="language" id="selectLanguage" class="tl_select" onchange="autoSubmit('language_switch')">
           <?php foreach ($this->languages as $langCode => $languageName) : ?>
-            <option value="<?= $langCode ?>"<?php if ($langCode === $this->language): ?> selected="selected"<?php endif; ?>>
-              <?= $languageName ?>
+            <option value="<?= $langCode ?>"<?php if ($langCode === $this->language): ?> selected="selected"<?php endif; ?><?php if ($langCode === $this->fallbackLanguage): ?> title="<?= StringUtil::specialchars($fallbackTitle) ?>"<?php endif; ?>>
+              <?= $languageName ?><?php if ($langCode === $this->fallbackLanguage): ?> [<?= StringUtil::specialchars($fallbackLabel) ?>]<?php endif; ?>
             </option>
           <?php endforeach; ?>
         </select>

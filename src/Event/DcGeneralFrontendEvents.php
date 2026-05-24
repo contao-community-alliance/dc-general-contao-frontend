@@ -30,12 +30,12 @@ class DcGeneralFrontendEvents
      *
      * @see ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Event\BuildWidgetEvent
      */
-    public const BUILD_WIDGET = 'dc-general.contao-frontend.build-widget';
+    public const string BUILD_WIDGET = 'dc-general.contao-frontend.build-widget';
 
     /**
      * This event is being emitted when the edit mask has encountered a submit and post action shall be performed.
      *
      * @see ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Event\HandleSubmitEvent
      */
-    public const HANDLE_SUBMIT = 'dc-general.contao-frontend.handle-submit';
+    public const string HANDLE_SUBMIT = 'dc-general.contao-frontend.handle-submit';
 }
