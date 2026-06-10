@@ -12,6 +12,7 @@
     "Doctrine\\DBAL\\ArrayParameterType",
     "Doctrine\\DBAL\\Connection",
     "Doctrine\\DBAL\\Platforms\\AbstractPlatform",
+    "Contao\\FormTextArea",
     "FrontendUser",
     "Psr\\EventDispatcher\\EventDispatcherInterface",
     "Symfony\\Component\\Config\\FileLocator",
