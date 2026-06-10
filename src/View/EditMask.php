@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015-2024 Contao Community Alliance.
+ * (c) 2015-2026 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,13 +15,16 @@
  * @author     Richard Henkenjohann <richardhenkenjohann@googlemail.com>
  * @author     Sven Baumann <baumann.sv@gmail.com>
  * @author     Ingolf Steinhardt <info@e-spin.de>
- * @copyright  2015-2024 Contao Community Alliance.
+ * @copyright  2015-2026 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
 
+declare(strict_types=1);
+
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View;
 
+use Contao\FrontendUser;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Event\DcGeneralFrontendEvents;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Event\HandleSubmitEvent;
 use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\Event\GetEditMaskSubHeadlineEvent;
@@ -50,6 +53,8 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
  * This class manages the displaying of the edit/create mask containing the widgets.
  *
  * It also handles the persisting of the model.
+ *
+ * @final
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
@@ -490,10 +495,13 @@ class EditMask
             !$currentVersion
             || !$dataProvider->sameModels($model, $version)
         ) {
-            $user     = \FrontendUser::getInstance();
+            $user     = FrontendUser::getInstance();
             $username = '(frontend anonymous)';
 
-            /** @psalm-suppress DeprecatedMethod */
+            /**
+             * @psalm-suppress DeprecatedMethod
+             * @psalm-suppress UndefinedMethod
+             */
             if ($user->authenticate()) {
                 $username = $user->username ?? '';
             }

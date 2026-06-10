@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015-2024 Contao Community Alliance.
+ * (c) 2015-2026 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -13,10 +13,12 @@
  * @package    contao-community-alliance/dc-general-contao-frontend
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author     Ingolf Steinhardt <info@e-spin.de>
- * @copyright  2015-2024 Contao Community Alliance.
+ * @copyright  2015-2026 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
+
+declare(strict_types=1);
 
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View;
 
@@ -27,7 +29,10 @@ use ContaoCommunityAlliance\Translator\TranslatorInterface;
 /**
  * This class is used for the contao frontend view as template.
  *
+ * @final
+ *
  * @psalm-suppress PropertyNotSetInConstructor
+ * @psalm-suppress DeprecatedClass
  */
 class ViewTemplate extends BackendTemplate implements ViewTemplateInterface, TranslatorInterface
 {
@@ -65,6 +70,7 @@ class ViewTemplate extends BackendTemplate implements ViewTemplateInterface, Tra
     /**
      * {@inheritDoc}
      */
+    #[\Override]
     public function setData($arrData)
     {
         parent::setData($arrData);
@@ -75,6 +81,7 @@ class ViewTemplate extends BackendTemplate implements ViewTemplateInterface, Tra
     /**
      * {@inheritDoc}
      */
+    #[\Override]
     public function set($name, $value)
     {
         $this->$name = $value;
@@ -85,6 +92,7 @@ class ViewTemplate extends BackendTemplate implements ViewTemplateInterface, Tra
     /**
      * {@inheritDoc}
      */
+    #[\Override]
     public function get($name)
     {
         return $this->$name;
@@ -93,6 +101,7 @@ class ViewTemplate extends BackendTemplate implements ViewTemplateInterface, Tra
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function translate($string, $domain = null, array $parameters = [], $locale = null)
     {
         return $this->translator->translate($string, $domain, $parameters, $locale);
@@ -101,6 +110,7 @@ class ViewTemplate extends BackendTemplate implements ViewTemplateInterface, Tra
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function translatePluralized($string, $number, $domain = null, array $parameters = [], $locale = null)
     {
         return $this->translator->translatePluralized($string, $number, $domain, $parameters, $locale);
@@ -110,6 +120,7 @@ class ViewTemplate extends BackendTemplate implements ViewTemplateInterface, Tra
     /**
      * {@inheritDoc}
      */
+    #[\Override]
     public function getData()
     {
         return parent::getData();
@@ -118,6 +129,7 @@ class ViewTemplate extends BackendTemplate implements ViewTemplateInterface, Tra
     /**
      * {@inheritDoc}
      */
+    #[\Override]
     public function parse()
     {
         return parent::parse();
@@ -126,9 +138,11 @@ class ViewTemplate extends BackendTemplate implements ViewTemplateInterface, Tra
     /**
      * {@inheritDoc}
      */
+    #[\Override]
     public function output()
     {
         /** @psalm-suppress DeprecatedMethod */
+        /** @psalm-suppress UndefinedMagicMethod */
         parent::output();
     }
     // @codingStandardsIgnoreEnd

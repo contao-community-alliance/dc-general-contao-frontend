@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2016-2024 Contao Community Alliance.
+ * (c) 2016-2026 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -13,18 +13,21 @@
  * @package   contao-community-alliance/dc-general-contao-frontend
  * @author    Sven Baumann <baumann.sv@gmail.com>
  * @author    Ingolf Steinhardt <info@e-spin.de>
- * @copyright 2016-2024 Contao Community Alliance.
+ * @copyright 2016-2026 Contao Community Alliance.
  * @license   https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  *
  * @filesource
  */
 
+declare(strict_types=1);
+
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Widgets;
 
 use Contao\Controller;
+use Contao\CoreBundle\Framework\Adapter;
+use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\Image\ImageFactory;
 use Contao\CoreBundle\Slug\Slug as SlugGenerator;
-use Contao\CoreBundle\Framework\Adapter;
 use Contao\Dbafs;
 use Contao\File;
 use Contao\FilesModel;
@@ -63,6 +66,8 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * @property boolean showThumbnail
  * @property boolean multiple
  * @property string  sortBy
+ *
+ * @final
  *
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
@@ -139,6 +144,7 @@ class UploadOnSteroids extends FormUpload
     /**
      * {@inheritDoc}
      */
+    #[\Override]
     public function __set($strKey, $varValue)
     {
         if (
@@ -171,6 +177,7 @@ class UploadOnSteroids extends FormUpload
     /**
      * {@inheritDoc}
      */
+    #[\Override]
     public function parse($arrAttributes = null)
     {
         $this->addIsDeletable();
@@ -203,6 +210,7 @@ class UploadOnSteroids extends FormUpload
     /**
      * {@inheritDoc}
      */
+    #[\Override]
     public function validate(): void
     {
         $inputName = $this->name;
@@ -343,7 +351,12 @@ class UploadOnSteroids extends FormUpload
      */
     private function deselectFile(string $inputName): void
     {
-        /** @psalm-suppress InternalMethod - Class ContaoFramework is internal, not the getAdapter() method. */
+        /**
+         * @psalm-suppress InternalMethod - Class ContaoFramework is internal, not the getAdapter() method.
+         * @psalm-suppress RedundantCastGivenDocblockType
+         * @psalm-suppress RedundantConditionGivenDocblockType
+         * @psalm-suppress DocblockTypeContradiction
+         */
         if (
             !$this->deselect
             || $this->hasErrors()
@@ -375,7 +388,12 @@ class UploadOnSteroids extends FormUpload
      */
     private function deleteFile(string $inputName): void
     {
-        /** @psalm-suppress InternalMethod - Class ContaoFramework is internal, not the getAdapter() method. */
+        /**
+         * @psalm-suppress InternalMethod - Class ContaoFramework is internal, not the getAdapter() method.
+         * @psalm-suppress RedundantCastGivenDocblockType
+         * @psalm-suppress RedundantConditionGivenDocblockType
+         * @psalm-suppress DocblockTypeContradiction
+         */
         if (
             !$this->delete
             || $this->hasErrors()
@@ -580,6 +598,7 @@ class UploadOnSteroids extends FormUpload
      *
      * @return string
      */
+    #[\Override]
     public function trans(
         $strId,
         array $arrParams = [],
@@ -652,7 +671,10 @@ class UploadOnSteroids extends FormUpload
     private function filesModel(): Adapter
     {
         if (null === $this->filesModel) {
-            $filesModel = self::getContainer()->get('contao.framework')?->getAdapter(FilesModel::class);
+            $framework = self::getContainer()->get('contao.framework');
+            assert($framework instanceof ContaoFramework);
+            $filesModel = $framework->getAdapter(FilesModel::class);
+            /** @psalm-suppress RedundantCondition */
             assert($filesModel instanceof Adapter);
             $this->filesModel = $filesModel;
         }

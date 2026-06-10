@@ -3,7 +3,7 @@
 /**
  * This file is part of contao-community-alliance/dc-general-contao-frontend.
  *
- * (c) 2015-2024 Contao Community Alliance.
+ * (c) 2015-2026 Contao Community Alliance.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -13,10 +13,12 @@
  * @package    contao-community-alliance/dc-general-contao-frontend
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author     Ingolf Steinhardt <info@e-spin.de>
- * @copyright  2015-2024 Contao Community Alliance.
+ * @copyright  2015-2026 Contao Community Alliance.
  * @license    https://github.com/contao-community-alliance/dc-general-contao-frontend/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
+
+declare(strict_types=1);
 
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Event;
 
@@ -28,6 +30,8 @@ use ContaoCommunityAlliance\DcGeneral\Event\AbstractModelAwareEvent;
 
 /**
  * This event is being emitted when the widget manager wants to create a new widget instance.
+ *
+ * @final
  */
 class BuildWidgetEvent extends AbstractModelAwareEvent
 {

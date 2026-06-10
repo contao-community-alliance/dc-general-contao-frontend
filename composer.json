@@ -19,6 +19,11 @@
       "name": "Stefan Heimes",
       "email": "stefan_heimes@hotmail.com",
       "role": "Developer"
+    },
+    {
+      "name": "Ingolf Steinhardt",
+      "email": "info@e-spin.de",
+      "role": "Developer"
     }
   ],
   "homepage": "https://c-c-a.org/",
@@ -29,12 +34,13 @@
     "source": "https://github.com/contao-community-alliance/dc-general-contao-frontend"
   },
   "require": {
-    "php": "^8.2",
-    "contao-community-alliance/dc-general": "^2.4@dev",
-    "contao-community-alliance/translator": "^2.5@dev",
-    "contao-community-alliance/url-builder": "^2.0@dev",
-    "contao/core-bundle": "^5.3 <5.7",
-    "symfony/event-dispatcher": "^6.4"
+    "php": "^8.4",
+    "contao-community-alliance/dc-general": "^2.5@dev",
+    "contao-community-alliance/events-contao-bindings": "^5.7",
+    "contao-community-alliance/translator": "^2.5",
+    "contao-community-alliance/url-builder": "^2.1",
+    "contao/core-bundle": "^5.7",
+    "symfony/event-dispatcher": "^7.4"
   },
   "require-dev": {
     "contao/manager-plugin": "^2.8",
@@ -56,10 +62,7 @@
   },
   "extra": {
     "branch-alias": {
-      "dev-feature/2.4.0": "2.4.x-dev",
-      "dev-support/2.1.x": "2.1.x-dev",
-      "dev-support/2.2.x": "2.2.x-dev",
-      "dev-support/2.3.x": "2.3.x-dev"
+      "dev-feature/2.5.0": "2.5.x-dev"
     },
     "contao-manager-plugin": "ContaoCommunityAlliance\\DcGeneral\\ContaoFrontend\\ContaoManager\\Plugin"
   }
