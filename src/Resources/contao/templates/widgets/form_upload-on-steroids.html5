@@ -63,4 +63,8 @@
     <input type="hidden" name="<?= $this->name ?><?= $this->multiple ? '[]' : '' ?>" value="<?= $this->value ?>">
     <input type="file" name="<?= $this->name ?><?= $this->multiple ? '[]' : '' ?>" id="ctrl_<?= $this->id ?>"
            class="upload<?php if ($this->class): ?> <?= $this->class ?><?php endif; ?>"<?= $this->getAttributes() ?>>
+    <?php // Contao's own form field templates render this, ours did not - without it the help text is lost. ?>
+    <?php if ($this->help): ?>
+        <p class="help" id="help_ctrl_<?= $this->id ?>"><?= $this->help ?></p>
+    <?php endif; ?>
 <?php $this->endblock(); ?>
