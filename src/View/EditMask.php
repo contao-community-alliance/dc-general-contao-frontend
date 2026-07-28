@@ -25,7 +25,9 @@ declare(strict_types=1);
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View;
 
 use Contao\CoreBundle\Intl\Locales;
+use Contao\CoreBundle\Security\Authentication\Token\TokenChecker;
 use Contao\FrontendUser;
+use Contao\System;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Event\DcGeneralFrontendEvents;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\Event\HandleSubmitEvent;
 use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\Event\GetEditMaskSubHeadlineEvent;
@@ -134,6 +136,13 @@ class EditMask
     private array $errors = [];
 
     /**
+     * The token checker, used to tell an authenticated front end member from an anonymous visitor.
+     *
+     * @var TokenChecker
+     */
+    private TokenChecker $tokenChecker;
+
+    /**
      * Create the edit mask.
      *
      * @param EnvironmentInterface $environment   The view in use.
@@ -141,9 +150,24 @@ class EditMask
      * @param ModelInterface       $originalModel The data from the original data.
      * @param callable|null        $preFunction   The function to call before saving an item.
      * @param callable|null        $postFunction  The function to call after saving an item.
+     * @param TokenChecker|null    $tokenChecker  The token checker.
+     *
+     * The token checker is optional to keep the signature backwards compatible - consumers construct this
+     * class themselves. When it is not passed, it is taken from the container.
      */
-    public function __construct($environment, $model, $originalModel, $preFunction, $postFunction)
-    {
+    public function __construct(
+        $environment,
+        $model,
+        $originalModel,
+        $preFunction,
+        $postFunction,
+        ?TokenChecker $tokenChecker = null
+    ) {
+        if (null === $tokenChecker) {
+            $tokenChecker = System::getContainer()->get('contao.security.token_checker');
+            assert($tokenChecker instanceof TokenChecker);
+        }
+
         $providerName      = $model->getProviderName();
         $this->environment = $environment;
         $translator        = $environment->getTranslator();
@@ -160,6 +184,7 @@ class EditMask
         $this->originalModel = $originalModel;
         $this->preFunction   = $preFunction;
         $this->postFunction  = $postFunction;
+        $this->tokenChecker  = $tokenChecker;
     }
 
     /**
@@ -502,11 +527,8 @@ class EditMask
             $user     = FrontendUser::getInstance();
             $username = '(frontend anonymous)';
 
-            /**
-             * @psalm-suppress DeprecatedMethod
-             * @psalm-suppress UndefinedMethod
-             */
-            if ($user->authenticate()) {
+            // Contao 5 removed User::authenticate(); the token checker answers the same question.
+            if ($this->tokenChecker->hasFrontendUser()) {
                 $username = $user->username ?? '';
             }
 

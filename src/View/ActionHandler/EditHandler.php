@@ -25,6 +25,7 @@ declare(strict_types=1);
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\ActionHandler;
 
 use Contao\CoreBundle\Exception\PageNotFoundException;
+use Contao\CoreBundle\Security\Authentication\Token\TokenChecker;
 use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminator;
 use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminatorAwareTrait;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\EditMask;
@@ -53,13 +54,22 @@ class EditHandler
     use RequestScopeDeterminatorAwareTrait;
 
     /**
+     * The token checker, handed on to the edit mask.
+     *
+     * @var TokenChecker|null
+     */
+    private ?TokenChecker $tokenChecker;
+
+    /**
      * EditHandler constructor.
      *
      * @param RequestScopeDeterminator $scopeDeterminator The request mode determinator.
+     * @param TokenChecker|null        $tokenChecker      The token checker.
      */
-    public function __construct(RequestScopeDeterminator $scopeDeterminator)
+    public function __construct(RequestScopeDeterminator $scopeDeterminator, ?TokenChecker $tokenChecker = null)
     {
         $this->setScopeDeterminator($scopeDeterminator);
+        $this->tokenChecker = $tokenChecker;
     }
 
     /**
@@ -121,7 +131,7 @@ class EditHandler
 
         // We only support flat tables, sorry.
         if (BasicDefinitionInterface::MODE_HIERARCHICAL === $basicDefinition->getMode()) {
-            throw new NotEditableException('Mode "' . $basicDefinition->getMode() . '" is not editable.');
+            throw new NotEditableException('Mode "' . (string) $basicDefinition->getMode() . '" is not editable.');
         }
 
         $inputProvider = $environment->getInputProvider();
@@ -140,6 +150,6 @@ class EditHandler
 
         $clone = clone $model;
 
-        return (new EditMask($environment, $model, $clone, null, null))->execute();
+        return (new EditMask($environment, $model, $clone, null, null, $this->tokenChecker))->execute();
     }
 }

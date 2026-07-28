@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\ActionHandler;
 
+use Contao\CoreBundle\Security\Authentication\Token\TokenChecker;
 use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminator;
 use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminatorAwareTrait;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\EditMask;
@@ -45,13 +46,22 @@ class CreateHandler
     use RequestScopeDeterminatorAwareTrait;
 
     /**
+     * The token checker, handed on to the edit mask.
+     *
+     * @var TokenChecker|null
+     */
+    private ?TokenChecker $tokenChecker;
+
+    /**
      * CreateHandler constructor.
      *
      * @param RequestScopeDeterminator $scopeDeterminator The request mode determinator.
+     * @param TokenChecker|null        $tokenChecker      The token checker.
      */
-    public function __construct(RequestScopeDeterminator $scopeDeterminator)
+    public function __construct(RequestScopeDeterminator $scopeDeterminator, ?TokenChecker $tokenChecker = null)
     {
         $this->setScopeDeterminator($scopeDeterminator);
+        $this->tokenChecker = $tokenChecker;
     }
 
     /**
@@ -132,6 +142,6 @@ class CreateHandler
             $model->setProperty($propName, $property->getDefaultValue());
         }
 
-        return (new EditMask($environment, $model, $clone, null, null))->execute();
+        return (new EditMask($environment, $model, $clone, null, null, $this->tokenChecker))->execute();
     }
 }

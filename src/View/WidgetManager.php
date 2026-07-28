@@ -117,7 +117,13 @@ class WidgetManager
                         $propertyName,
                         $this->encodeValue($propertyName, $propertyValue, $valueBag)
                     );
-                } catch (\Exception $e) {
+                } catch (\Exception $exception) {
+                    // Swallowing this would drop the value from the bag without a trace and lose it on save.
+                    throw new DcGeneralInvalidArgumentException(
+                        'The value of ' . $propertyName . ' cannot be encoded.',
+                        0,
+                        $exception
+                    );
                 }
             }
 
@@ -244,7 +250,7 @@ class WidgetManager
                         $property,
                         $this->encodeValue(
                             $property,
-                            match(true) {
+                            match (true) {
                                 $widget->value === '' => $widget->getEmptyStringOrNull(),
                                 (bool) $widget->basicEntities => StringUtil::restoreBasicEntities($widget->value),
                                 default => $widget->value,

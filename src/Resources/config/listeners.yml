@@ -19,6 +19,7 @@ services:
         class: ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\ActionHandler\CreateHandler
         arguments:
             - "@cca.dc-general.scope-matcher"
+            - "@contao.security.token_checker"
         tags:
             - { name: kernel.event_listener, event: dc-general.action, method: handleEvent }
 
@@ -26,6 +27,7 @@ services:
         class: ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\ActionHandler\EditHandler
         arguments:
             - "@cca.dc-general.scope-matcher"
+            - "@contao.security.token_checker"
         tags:
             - { name: kernel.event_listener, event: dc-general.action, method: handleEvent }
 
