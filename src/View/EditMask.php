@@ -143,6 +143,13 @@ class EditMask
     private TokenChecker $tokenChecker;
 
     /**
+     * The locales, used to label the languages of a multi language data provider.
+     *
+     * @var Locales
+     */
+    private Locales $locales;
+
+    /**
      * Create the edit mask.
      *
      * @param EnvironmentInterface $environment   The view in use.
@@ -151,9 +158,10 @@ class EditMask
      * @param callable|null        $preFunction   The function to call before saving an item.
      * @param callable|null        $postFunction  The function to call after saving an item.
      * @param TokenChecker|null    $tokenChecker  The token checker.
+     * @param Locales|null         $locales       The locales.
      *
-     * The token checker is optional to keep the signature backwards compatible - consumers construct this
-     * class themselves. When it is not passed, it is taken from the container.
+     * The two services are optional to keep the signature backwards compatible - consumers construct this
+     * class themselves. When they are not passed, they are taken from the container.
      */
     public function __construct(
         $environment,
@@ -161,12 +169,13 @@ class EditMask
         $originalModel,
         $preFunction,
         $postFunction,
-        ?TokenChecker $tokenChecker = null
+        ?TokenChecker $tokenChecker = null,
+        ?Locales $locales = null
     ) {
-        if (null === $tokenChecker) {
-            $tokenChecker = System::getContainer()->get('contao.security.token_checker');
-            assert($tokenChecker instanceof TokenChecker);
-        }
+        $tokenChecker ??= System::getContainer()->get('contao.security.token_checker');
+        assert($tokenChecker instanceof TokenChecker);
+        $locales ??= System::getContainer()->get('contao.intl.locales');
+        assert($locales instanceof Locales);
 
         $providerName      = $model->getProviderName();
         $this->environment = $environment;
@@ -185,6 +194,7 @@ class EditMask
         $this->preFunction   = $preFunction;
         $this->postFunction  = $postFunction;
         $this->tokenChecker  = $tokenChecker;
+        $this->locales       = $locales;
     }
 
     /**
@@ -633,10 +643,7 @@ class EditMask
             $dataProvider instanceof MultiLanguageDataProviderInterface
             && null !== $dataProvider->getLanguages($this->model->getId())
         ) {
-            $locales = System::getContainer()->get('contao.intl.locales');
-            assert($locales instanceof Locales);
-
-            $languages = $locales->getLocales(null, true);
+            $languages = $this->locales->getLocales(null, true);
 
             $controller = $this->environment->getController();
             assert($controller instanceof ControllerInterface);

@@ -25,6 +25,7 @@ declare(strict_types=1);
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\ActionHandler;
 
 use Contao\CoreBundle\Exception\PageNotFoundException;
+use Contao\CoreBundle\Intl\Locales;
 use Contao\CoreBundle\Security\Authentication\Token\TokenChecker;
 use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminator;
 use ContaoCommunityAlliance\DcGeneral\Contao\RequestScopeDeterminatorAwareTrait;
@@ -61,15 +62,27 @@ class EditHandler
     private ?TokenChecker $tokenChecker;
 
     /**
+     * The locales, handed on to the edit mask.
+     *
+     * @var Locales|null
+     */
+    private ?Locales $locales;
+
+    /**
      * EditHandler constructor.
      *
      * @param RequestScopeDeterminator $scopeDeterminator The request mode determinator.
      * @param TokenChecker|null        $tokenChecker      The token checker.
+     * @param Locales|null             $locales           The locales.
      */
-    public function __construct(RequestScopeDeterminator $scopeDeterminator, ?TokenChecker $tokenChecker = null)
-    {
+    public function __construct(
+        RequestScopeDeterminator $scopeDeterminator,
+        ?TokenChecker $tokenChecker = null,
+        ?Locales $locales = null
+    ) {
         $this->setScopeDeterminator($scopeDeterminator);
         $this->tokenChecker = $tokenChecker;
+        $this->locales      = $locales;
     }
 
     /**
@@ -150,6 +163,6 @@ class EditHandler
 
         $clone = clone $model;
 
-        return (new EditMask($environment, $model, $clone, null, null, $this->tokenChecker))->execute();
+        return (new EditMask($environment, $model, $clone, null, null, $this->tokenChecker, $this->locales))->execute();
     }
 }

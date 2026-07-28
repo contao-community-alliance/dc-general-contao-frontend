@@ -20,6 +20,7 @@ services:
         arguments:
             - "@cca.dc-general.scope-matcher"
             - "@contao.security.token_checker"
+            - "@contao.intl.locales"
         tags:
             - { name: kernel.event_listener, event: dc-general.action, method: handleEvent }
 
@@ -28,6 +29,7 @@ services:
         arguments:
             - "@cca.dc-general.scope-matcher"
             - "@contao.security.token_checker"
+            - "@contao.intl.locales"
         tags:
             - { name: kernel.event_listener, event: dc-general.action, method: handleEvent }
 
