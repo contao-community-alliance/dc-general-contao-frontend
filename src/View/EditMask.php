@@ -24,6 +24,9 @@ declare(strict_types=1);
 
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View;
 
+use Contao\Environment;
+use Contao\Message;
+use Contao\StringUtil;
 use Contao\CoreBundle\Intl\Locales;
 use Contao\CoreBundle\Security\Authentication\Token\TokenChecker;
 use Contao\FrontendUser;
@@ -252,6 +255,10 @@ class EditMask
                 'error'       => $this->errors,
                 'editButtons' => $buttons,
                 'model'       => $this->model,
+                // Both templates take these from here: Message::generate() flushes the stack, so
+                // whichever template called it would leave the other one empty.
+                'messages'    => Message::generate(),
+                'action'      => StringUtil::ampersand(Environment::get('request')),
             ]
         );
 

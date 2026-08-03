@@ -63,10 +63,10 @@ function autoSubmit(formId) {
   ?>
 <?php endif; ?>
 
-<?= Message::generate() ?>
+<?= $this->messages ?>
 
 <form method="post"
-      action="<?= StringUtil::ampersand(Environment::get('request')) ?>"
+      action="<?= $this->action ?>"
       id="<?= $this->table ?>"
       enctype="<?= $this->enctype ?>"
 >

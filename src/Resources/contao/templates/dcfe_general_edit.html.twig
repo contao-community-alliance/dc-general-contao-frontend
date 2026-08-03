@@ -1,0 +1,86 @@
+{#
+    Twig variant of dcfe_general_edit.html5.
+
+    Contao renders this one instead of the legacy template as soon as it exists - see
+    TemplateInheritance::renderTwigSurrogateIfExists(). The legacy file stays as the fallback for
+    setups that override it, and both must keep producing the same markup.
+
+    Three things the legacy template did in PHP have their own form here: the request token comes
+    from "contao.request_token", the scripts go through the "body" block instead of appending to
+    $GLOBALS['TL_BODY'], and the messages as well as the form action are handed in by EditMask -
+    Message::generate() flushes the stack, so whichever template called it would leave the other
+    one empty.
+#}
+{% set fallbackLabel = 'language_selector.fallback'|trans({}, 'dc-general') %}
+{% set fallbackTitle = 'language_selector.fallback_title'|trans({}, 'dc-general') %}
+
+<h2 class="sub_headline">{{ subHeadline|raw }}{% if languages|default and language %} - {{ languages[language]|default(language) }}{% if language == fallbackLanguage %} <span class="lang-hint--fallback" title="{{ fallbackTitle }}">{{ fallbackLabel }}</span>{% endif %}{% endif %}</h2>
+
+{% if language and languages|default %}
+    <div class="tl_panel tl_language_panel">
+        <form action="" id="language_switch" class="tl_form" method="post">
+            <div class="tl_formbody">
+                <input type="hidden" name="FORM_SUBMIT" value="language_switch">
+                <input type="hidden" name="REQUEST_TOKEN" value="{{ contao.request_token }}">
+                <label for="selectLanguage"><strong>{{ languageLabel }}: </strong></label>
+                <select name="language" id="selectLanguage" class="tl_select" onchange="autoSubmit('language_switch')">
+                    {% for langCode, languageName in languages %}
+                        <option value="{{ langCode }}"{% if langCode == language %} selected="selected"{% endif %}{% if langCode == fallbackLanguage %} title="{{ fallbackTitle }}"{% endif %}>
+                            {{ languageName }}{% if langCode == fallbackLanguage %} [{{ fallbackLabel }}]{% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+                <input type="submit" name="switchLanguage" id="switchLanguage" class="tl_submit" value="{{ languageSubmit }}">
+            </div>
+        </form>
+    </div>
+
+    {% add 'dcfe_language_switch' to body %}
+        <script{{ attrs().setIfExists('nonce', csp_nonce('script-src')) }}>
+            function autoSubmit(formId) {
+                const form = document.getElementById(formId);
+                if (form) {
+                    form.submit();
+                }
+            }
+        </script>
+    {% endadd %}
+{% endif %}
+
+{{ messages|raw }}
+
+<form method="post" action="{{ action }}" id="{{ table }}" enctype="{{ enctype }}">
+    <div class="formbody_edit">
+        <input type="hidden" name="FORM_SUBMIT" value="{{ table }}">
+        <input type="hidden" name="REQUEST_TOKEN" value="{{ contao.request_token }}">
+        {% if error|default %}<p class="tl_error">{{ error|join('<br />')|raw }}</p>{% endif %}
+        {% for fieldset in fieldsets %}
+            {% if fieldset.legend %}
+                <fieldset id="pal_{{ fieldset.legend }}" class="{{ fieldset.class }} block">
+                    <legend>{{ fieldset.label|raw }}</legend>
+                    {{ fieldset.palette|raw }}
+                </fieldset>
+            {% else %}
+                <fieldset class="{{ fieldset.class }} block nolegend">
+                    {{ fieldset.palette|raw }}
+                </fieldset>
+            {% endif %}
+        {% endfor %}
+    </div>
+    <div class="formbody_submit">
+        <div class="submit_container">
+            {{ editButtons|join(' ')|raw }}
+        </div>
+    </div>
+</form>
+
+{% add 'dcfe_abort_button' to body %}
+    <script{{ attrs().setIfExists('nonce', csp_nonce('script-src')) }}>
+        const form = document.getElementById("{{ table }}");
+        form.querySelectorAll("button.notsave").forEach(abortButton => {
+            abortButton.addEventListener("click", () => {
+                form.noValidate = true;
+            }, true);
+        });
+    </script>
+{% endadd %}
