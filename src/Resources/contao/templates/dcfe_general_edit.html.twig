@@ -10,27 +10,31 @@
     $GLOBALS['TL_BODY'], and the messages as well as the form action are handed in by EditMask -
     Message::generate() flushes the stack, so whichever template called it would leave the other
     one empty.
+
+    The language variables are guarded with |default throughout: a monolingual MetaModel never
+    sets them, and Twig runs with strict_variables - unlike the legacy template, where a missing
+    property simply yielded null.
 #}
 {% set fallbackLabel = 'language_selector.fallback'|trans({}, 'dc-general') %}
 {% set fallbackTitle = 'language_selector.fallback_title'|trans({}, 'dc-general') %}
 
-<h2 class="sub_headline">{{ subHeadline|raw }}{% if languages|default and language %} - {{ languages[language]|default(language) }}{% if language == fallbackLanguage %} <span class="lang-hint--fallback" title="{{ fallbackTitle }}">{{ fallbackLabel }}</span>{% endif %}{% endif %}</h2>
+<h2 class="sub_headline">{{ subHeadline|raw }}{% if languages|default and language|default %} - {{ languages[language]|default(language) }}{% if language == fallbackLanguage|default %} <span class="lang-hint--fallback" title="{{ fallbackTitle }}">{{ fallbackLabel }}</span>{% endif %}{% endif %}</h2>
 
-{% if language and languages|default %}
+{% if language|default and languages|default %}
     <div class="tl_panel tl_language_panel">
         <form action="" id="language_switch" class="tl_form" method="post">
             <div class="tl_formbody">
-                <input type="hidden" name="FORM_SUBMIT" value="language_switch">
-                <input type="hidden" name="REQUEST_TOKEN" value="{{ contao.request_token }}">
-                <label for="selectLanguage"><strong>{{ languageLabel }}: </strong></label>
+                <input type="hidden" name="FORM_SUBMIT" value="language_switch" />
+                <input type="hidden" name="REQUEST_TOKEN" value="{{ contao.request_token }}" />
+                <label for="selectLanguage"><strong>{{ languageLabel|default }}: </strong></label>
                 <select name="language" id="selectLanguage" class="tl_select" onchange="autoSubmit('language_switch')">
                     {% for langCode, languageName in languages %}
-                        <option value="{{ langCode }}"{% if langCode == language %} selected="selected"{% endif %}{% if langCode == fallbackLanguage %} title="{{ fallbackTitle }}"{% endif %}>
-                            {{ languageName }}{% if langCode == fallbackLanguage %} [{{ fallbackLabel }}]{% endif %}
+                        <option value="{{ langCode }}"{% if langCode == language %} selected="selected"{% endif %}{% if langCode == fallbackLanguage|default %} title="{{ fallbackTitle }}"{% endif %}>
+                            {{ languageName }}{% if langCode == fallbackLanguage|default %} [{{ fallbackLabel }}]{% endif %}
                         </option>
                     {% endfor %}
                 </select>
-                <input type="submit" name="switchLanguage" id="switchLanguage" class="tl_submit" value="{{ languageSubmit }}">
+                <input type="submit" name="switchLanguage" id="switchLanguage" class="tl_submit" value="{{ languageSubmit|default }}" />
             </div>
         </form>
     </div>
@@ -49,10 +53,14 @@
 
 {{ messages|raw }}
 
-<form method="post" action="{{ action }}" id="{{ table }}" enctype="{{ enctype }}">
+<form method="post"
+      action="{{ action }}"
+      id="{{ table }}"
+      enctype="{{ enctype }}"
+>
     <div class="formbody_edit">
-        <input type="hidden" name="FORM_SUBMIT" value="{{ table }}">
-        <input type="hidden" name="REQUEST_TOKEN" value="{{ contao.request_token }}">
+        <input type="hidden" name="FORM_SUBMIT" value="{{ table }}"/>
+        <input type="hidden" name="REQUEST_TOKEN" value="{{ contao.request_token }}"/>
         {% if error|default %}<p class="tl_error">{{ error|join('<br />')|raw }}</p>{% endif %}
         {% for fieldset in fieldsets %}
             {% if fieldset.legend %}
