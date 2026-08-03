@@ -561,7 +561,7 @@ class UploadOnSteroids extends FormUpload
 
         // Generate simple file list.
         if (!$this->showThumbnail) {
-            $this->files = $statement->fetchAllAssociative();
+            $this->files = \array_map($this->addUuidString(...), $statement->fetchAllAssociative());
 
             return;
         }
@@ -588,10 +588,28 @@ class UploadOnSteroids extends FormUpload
                 'height' => $objThumbnailFile->imageSize[1]
             ];
 
-            $fileList[] = $file;
+            $fileList[] = $this->addUuidString($file);
         }
 
         $this->files = $fileList;
+    }
+
+    /**
+     * Add the readable form of the uuid to a file row.
+     *
+     * The column holds the binary form, which a template cannot convert on its own - the Twig
+     * variant has no equivalent of StringUtil::binToUuid(). Providing it here keeps both templates
+     * working off the same data.
+     *
+     * @param array<string, mixed> $file The file row.
+     *
+     * @return array<string, mixed>
+     */
+    private function addUuidString(array $file): array
+    {
+        $file['uuidString'] = StringUtil::binToUuid((string) $file['uuid']);
+
+        return $file;
     }
 
     /**

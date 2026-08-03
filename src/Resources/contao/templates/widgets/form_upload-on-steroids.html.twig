@@ -1,0 +1,80 @@
+{#
+    Twig variant of form_upload-on-steroids.html5.
+
+    Contao renders this one instead of the legacy template as soon as it exists - see
+    TemplateInheritance::renderTwigSurrogateIfExists(). The legacy file stays as the fallback for
+    setups that override it, and both must keep producing the same markup.
+
+    The checkbox values use "uuidString" rather than converting the binary uuid in the template:
+    Twig has no equivalent of StringUtil::binToUuid(), so the widget supplies both forms.
+#}
+{% extends '@Contao/form_row.html.twig' %}
+
+{% block label %}
+    {% if this.label %}
+        <label for="ctrl_{{ this.id }}"{% if this.class|default %} class="{{ this.class|default }}"{% endif %}>
+            {% if this.mandatory|default %}
+                <span class="invisible">{{ this.mandatoryField }} </span>{{ this.label|insert_tag_raw }}<span class="mandatory">*</span>
+            {% else %}
+                {{ this.label|insert_tag_raw }}
+            {% endif %}
+        </label>
+    {% endif %}
+
+    {% if this.files|default %}
+        <div class="file-container">
+            <ul id="files_{{ this.id }}" class="files">
+                {% for key, file in this.files %}
+                    <li class="file-element{% if not this.showThumbnail %} download-element ext-{{ file.extension }}{% endif %}">
+                        {% if this.showThumbnail %}
+                            <img src="{{ file.thumbnail.src }}" width="{{ file.thumbnail.width }}" height="{{ file.thumbnail.height }}" alt="{{ file.name }}" itemprop="image">
+                            <br><span class="file-name">{{ file.name }}</span>
+                        {% else %}
+                            <span class="file-name">{{ file.name }}</span>
+                        {% endif %}
+
+                        <div class="file-action">
+                            {% if this.deselect %}
+                                <div class="file-reset">
+                                    <label for="ctrl_reset_{{ this.id }}_{{ key }}">{{ 'MSC.reset'|trans({}, 'contao_default') }}</label>
+                                    <input type="checkbox" name="{{ this.name }}__reset[]"
+                                           id="ctrl_reset_{{ this.id }}_{{ key }}"
+                                           value="{{ file.uuidString }}">
+                                </div>
+                            {% endif %}
+                            {% if this.delete %}
+                                <div class="file-delete">
+                                    <label for="ctrl_delete_{{ this.id }}_{{ key }}">{{ 'MSC.delete'|trans({}, 'contao_default') }}</label>
+                                    <input type="checkbox" name="{{ this.name }}__delete[]"
+                                           id="ctrl_delete_{{ this.id }}_{{ key }}"
+                                           value="{{ file.uuidString }}">
+                                </div>
+                            {% endif %}
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block field %}
+    {% if hasErrors.invoke() %}
+        <p class="error">{{ getErrorAsString.invoke() }}</p>
+    {% endif %}
+
+    {% set suffix = this.multiple ? '[]' : '' %}
+    <input type="hidden" name="{{ this.name }}{{ suffix }}" value="{{ this.value }}">
+    <input{{ attrs()
+        .set('type', 'file')
+        .set('name', "#{this.name}#{suffix}")
+        .set('id', "ctrl_#{this.id}")
+        .addClass('upload')
+        .addClass(this.class|default)
+        .mergeWith(attrs(getAttributes.invoke()))
+    }}>
+    {# Contao's own form field templates render this, ours did not - without it the help text is lost. #}
+    {% if this.help|default %}
+        <p class="help" id="help_ctrl_{{ this.id }}">{{ this.help|insert_tag_raw }}</p>
+    {% endif %}
+{% endblock %}
