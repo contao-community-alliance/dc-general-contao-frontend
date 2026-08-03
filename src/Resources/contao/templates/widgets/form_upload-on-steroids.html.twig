@@ -20,7 +20,15 @@
             {% endif %}
         </label>
     {% endif %}
+{% endblock %}
 
+{% block field %}
+    {#
+        The list of files already attached belongs here rather than in the label block. Anything a
+        label block holds is lost as soon as another template overrides it - MetaModels' frontend
+        editing does exactly that to append its translation badge - and the rendered order is the
+        same either way, because form_row renders the label block before this one.
+    #}
     {% if this.files|default %}
         <div class="file-container">
             <ul id="files_{{ this.id }}" class="files">
@@ -56,9 +64,7 @@
             </ul>
         </div>
     {% endif %}
-{% endblock %}
 
-{% block field %}
     {% if hasErrors.invoke() %}
         <p class="error">{{ getErrorAsString.invoke() }}</p>
     {% endif %}
