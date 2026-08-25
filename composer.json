@@ -40,6 +40,7 @@
     "contao-community-alliance/translator": "^2.5",
     "contao-community-alliance/url-builder": "^2.1",
     "contao/core-bundle": "^5.7",
+    "doctrine/dbal": "^3.7 || ^4.3",
     "symfony/event-dispatcher": "^7.4",
     "symfony/filesystem": "^7.4",
     "symfony/http-kernel": "^7.4"
