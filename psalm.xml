@@ -13,11 +13,4 @@
       <directory name="src/Resources"/>
     </ignoreFiles>
   </projectFiles>
-  <issueHandlers>
-    <TooManyArguments>
-      <errorLevel type="suppress">
-        <referencedFunction name="Doctrine\DBAL\Query\QueryBuilder::select"/>
-      </errorLevel>
-    </TooManyArguments>
-  </issueHandlers>
 </psalm>
