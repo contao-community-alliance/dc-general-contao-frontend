@@ -621,8 +621,11 @@ class UploadOnSteroids extends FormUpload
      * @param string $locale    The locale or null to use the default.
      *
      * @return string
+     *
+     * Not #[\Override]: FormUpload/Widget never declared trans() under Contao 6 (this was fatal
+     * under PHP 8.3+'s #[\Override] enforcement - "no matching parent method exists" - so whatever
+     * Contao version this once overrode, it doesn't anymore).
      */
-    #[\Override]
     public function trans(
         $strId,
         array $arrParams = [],
