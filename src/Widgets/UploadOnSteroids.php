@@ -583,7 +583,7 @@ class UploadOnSteroids extends FormUpload
             $objThumbnailFile = new File(rawurldecode($src));
 
             $file['thumbnail'] = [
-                'src'    => StringUtil::specialcharsUrl(Controller::addFilesUrlTo($src)),
+                'src'    => Controller::addFilesUrlTo($src),
                 'width'  => $objThumbnailFile->imageSize[0],
                 'height' => $objThumbnailFile->imageSize[1]
             ];
