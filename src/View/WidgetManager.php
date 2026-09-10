@@ -23,7 +23,7 @@ declare(strict_types=1);
 
 namespace ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View;
 
-use Contao\FormTextArea;
+use Contao\FormTextarea;
 use Contao\Input;
 use Contao\StringUtil;
 use Contao\Widget;
@@ -239,11 +239,7 @@ class WidgetManager
 
         try {
             // See https://github.com/contao/contao/blob/7e6bacd4e/core-bundle/src/Resources/contao/forms/FormTextArea.php#L147
-            /**
-             * @psalm-suppress UndefinedClass
-             * @psalm-suppress TypeDoesNotContainType
-             */
-            if ($widget instanceof FormTextArea) {
+            if ($widget instanceof FormTextarea) {
                 /** @psalm-suppress UndefinedMagicPropertyFetch */
                 if (null !== $widget->rte) {
                     $valueBag->setPropertyValue(
